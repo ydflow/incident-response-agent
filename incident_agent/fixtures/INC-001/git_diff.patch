@@ -1,0 +1,15 @@
+Date: Sat, 26 Sep 2026 09:05:00 +0000
+Subject: synthetic payment-service database pool configuration change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/config/payment-service.yaml b/config/payment-service.yaml
+--- a/config/payment-service.yaml
++++ b/config/payment-service.yaml
+@@ -1,5 +1,5 @@
+ service: payment-service
+ database:
+   pool:
+-    max_connections: 50
++    max_connections: 5
+    acquire_timeout_ms: 2000

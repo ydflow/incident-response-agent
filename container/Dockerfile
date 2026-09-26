@@ -198,6 +198,7 @@ RUN set -eu && \
 
 # Copy source code
 COPY agent-runner/ ./
+COPY incident_agent/fixtures/ /app/incident_agent/fixtures/
 
 # Build TypeScript. Docker COPY preserves restrictive source-worktree modes;
 # hand immutable prompt assets to node explicitly instead of relying on the

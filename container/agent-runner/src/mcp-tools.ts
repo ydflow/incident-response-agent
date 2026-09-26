@@ -22,6 +22,7 @@ import {
   defineMcpTool as tool,
   type McpToolDefinition,
 } from './mcp-tool-types.js';
+import { createIncidentEvidenceTools } from './incident-evidence-tools.js';
 
 /** Context required by MCP tools. Passed at construction time. */
 export interface McpContext {
@@ -2813,5 +2814,5 @@ Use the skills panel in the UI to find the skill ID (directory name, e.g. "memor
     );
   }
 
-  return tools;
+  return [...tools, ...createIncidentEvidenceTools()];
 }

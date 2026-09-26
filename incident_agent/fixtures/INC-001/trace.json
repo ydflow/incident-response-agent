@@ -1,0 +1,50 @@
+{
+  "service": "payment-service",
+  "traces": [
+    {
+      "trace_id": "trace-ok-0001",
+      "request_id": "req-0001",
+      "spans": [
+        {
+          "span_id": "http-ok",
+          "name": "POST /payments",
+          "started_at": "2026-09-26T09:04:20.000Z",
+          "ended_at": "2026-09-26T09:04:20.090Z",
+          "duration_ms": 90,
+          "http_status": 200
+        },
+        {
+          "span_id": "db-acquire-ok",
+          "name": "db.acquire_connection",
+          "started_at": "2026-09-26T09:04:20.010Z",
+          "ended_at": "2026-09-26T09:04:20.022Z",
+          "duration_ms": 12,
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-fail-0043",
+      "request_id": "req-0043",
+      "spans": [
+        {
+          "span_id": "http-fail",
+          "name": "POST /payments",
+          "started_at": "2026-09-26T09:06:43.000Z",
+          "ended_at": "2026-09-26T09:06:45.120Z",
+          "duration_ms": 2120,
+          "http_status": 500
+        },
+        {
+          "span_id": "db-acquire-fail",
+          "name": "db.acquire_connection",
+          "started_at": "2026-09-26T09:06:43.020Z",
+          "ended_at": "2026-09-26T09:06:45.020Z",
+          "duration_ms": 2000,
+          "status": "ERROR",
+          "error": "connection acquisition exceeded 2000 ms"
+        }
+      ]
+    }
+  ]
+}
