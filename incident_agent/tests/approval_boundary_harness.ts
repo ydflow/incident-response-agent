@@ -48,7 +48,8 @@ async function main(): Promise<void> {
     incidentApprovalGate: gate,
   });
   const selected = definitions.filter((tool) => tool.name === action);
-  if (selected.length !== 1) throw new Error('Remediation tool registration failed.');
+  if (selected.length !== 1)
+    throw new Error('Remediation tool registration failed.');
   const [tool] = adaptClaudeMcpToolsToPi(selected, {
     namespace: 'mcp__miniclaw',
   });
@@ -71,7 +72,9 @@ async function main(): Promise<void> {
   let rejection: Record<string, unknown> | undefined;
   let postRejectAllow: Record<string, unknown> | undefined;
   if (scenario === 'rejected') {
-    rejection = parseResult(await gate.reject(proposed.approval_id, 'human:pytest'));
+    rejection = parseResult(
+      await gate.reject(proposed.approval_id, 'human:pytest'),
+    );
     postRejectAllow = parseResult(
       await gate.allow(proposed.approval_id, 'human:pytest'),
     );
