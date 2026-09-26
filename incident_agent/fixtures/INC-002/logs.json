@@ -1,0 +1,19 @@
+{
+  "service": "session-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T11:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-002-early",
+      "component": "cache",
+      "message": "cache connect refused while reading session"
+    },
+    {
+      "timestamp": "2026-09-26T12:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-002-fail",
+      "component": "http",
+      "message": "GET /session returned HTTP 500 after Redis connection refusal"
+    }
+  ]
+}

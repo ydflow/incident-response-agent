@@ -1,0 +1,51 @@
+{
+  "service": "image-service",
+  "traces": [
+    {
+      "trace_id": "trace-006-healthy",
+      "request_id": "req-006-ok",
+      "spans": [
+        {
+          "span_id": "image-process--202",
+          "name": "image.process",
+          "started_at": "2026-09-26T15:56:30.060Z",
+          "ended_at": "2026-09-26T15:56:30.080Z",
+          "duration_ms": 20,
+          "status": "OK"
+        },
+        {
+          "span_id": "POST -images--203",
+          "name": "POST /images",
+          "started_at": "2026-09-26T15:56:30.040Z",
+          "ended_at": "2026-09-26T15:56:30.100Z",
+          "duration_ms": 60,
+          "status": "OK",
+          "http_status": 200
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-006-observed",
+      "request_id": "req-006-fail",
+      "spans": [
+        {
+          "span_id": "image-process-10",
+          "name": "image.process",
+          "started_at": "2026-09-26T16:00:10.000Z",
+          "ended_at": "2026-09-26T16:00:10.100Z",
+          "duration_ms": 100,
+          "status": "ERROR"
+        },
+        {
+          "span_id": "POST -images-10",
+          "name": "POST /images",
+          "started_at": "2026-09-26T16:00:10.000Z",
+          "ended_at": "2026-09-26T16:00:10.150Z",
+          "duration_ms": 150,
+          "status": "ERROR",
+          "http_status": 500
+        }
+      ]
+    }
+  ]
+}

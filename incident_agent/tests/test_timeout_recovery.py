@@ -5,7 +5,12 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from incident_agent import Incident, IncidentLifecycle, IncidentStatus, JsonlEventStore
+
+
+pytestmark = pytest.mark.core
 
 
 ROOT = Path(__file__).resolve().parents[2]

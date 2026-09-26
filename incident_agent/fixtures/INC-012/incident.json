@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-012",
+  "service": "email-worker",
+  "alert": "Pending email queue length increased while successful sends fell",
+  "started_at": "2026-09-26T22:00:00.000Z"
+}

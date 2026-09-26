@@ -1,0 +1,19 @@
+{
+  "service": "image-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T15:59:20.000Z",
+      "level": "ERROR",
+      "request_id": "req-006-early",
+      "component": "image-worker",
+      "message": "processed image count increased; process memory remained allocated after request"
+    },
+    {
+      "timestamp": "2026-09-26T16:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-006-fail",
+      "component": "image-worker",
+      "message": "image processing allocation failed; worker restarted"
+    }
+  ]
+}

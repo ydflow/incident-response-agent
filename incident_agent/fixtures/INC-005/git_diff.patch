@@ -1,0 +1,11 @@
+Date: Sat, 26 Sep 2026 14:58:00 +0000
+Subject: synthetic service change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/config/report-service.yaml b/config/report-service.yaml
+--- a/config/report-service.yaml
++++ b/config/report-service.yaml
+@@ -1 +1 @@
+-interval_seconds: 60
++interval_seconds: 1

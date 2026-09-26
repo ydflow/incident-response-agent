@@ -1,0 +1,19 @@
+{
+  "service": "profile-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T19:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-010-early",
+      "component": "dns",
+      "message": "DNS lookup for avatar-api.example.invalid exceeded 1500 ms"
+    },
+    {
+      "timestamp": "2026-09-26T20:00:14.000Z",
+      "level": "ERROR",
+      "request_id": "req-010-fail",
+      "component": "http",
+      "message": "GET /profile timed out before avatar-api connection completed"
+    }
+  ]
+}

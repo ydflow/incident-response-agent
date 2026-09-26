@@ -4,6 +4,11 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
+
+pytestmark = pytest.mark.core
+
 
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = Path(__file__).with_name("approval_boundary_harness.ts")

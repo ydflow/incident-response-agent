@@ -1,0 +1,11 @@
+Date: Sat, 26 Sep 2026 16:58:00 +0000
+Subject: synthetic service change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/config/notify-production.yaml b/config/notify-production.yaml
+--- a/config/notify-production.yaml
++++ b/config/notify-production.yaml
+@@ -1 +1 @@
+-sms_api_url: https://sms.prod.example.invalid
++sms_api_url: https://sms.sandbox.example.invalid

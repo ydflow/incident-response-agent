@@ -1,0 +1,19 @@
+{
+  "service": "checkout-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T21:00:11.000Z",
+      "level": "ERROR",
+      "request_id": "req-conflict-11",
+      "component": "cache",
+      "message": "req-conflict-11 cache timeout in cache.get span cache-get-10 during checkout"
+    },
+    {
+      "timestamp": "2026-09-26T21:00:13.000Z",
+      "level": "ERROR",
+      "request_id": "req-conflict-11",
+      "component": "http",
+      "message": "req-conflict-11 POST /checkout returned HTTP 502"
+    }
+  ]
+}

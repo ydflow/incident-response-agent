@@ -1,0 +1,19 @@
+{
+  "service": "checkout-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T12:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-003-early",
+      "component": "shipping-client",
+      "message": "shipping-api returned HTTP 503"
+    },
+    {
+      "timestamp": "2026-09-26T13:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-003-fail",
+      "component": "http",
+      "message": "POST /checkout returned HTTP 502 after shipping-api HTTP 503"
+    }
+  ]
+}

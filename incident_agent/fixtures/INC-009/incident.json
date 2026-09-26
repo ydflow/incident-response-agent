@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-009",
+  "service": "search-service",
+  "alert": "Order search request p95 exceeded 1000 ms",
+  "started_at": "2026-09-26T19:00:00.000Z"
+}

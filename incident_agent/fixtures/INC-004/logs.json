@@ -1,0 +1,19 @@
+{
+  "service": "order-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T13:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-004-early",
+      "component": "order-v2",
+      "message": "legacy client request without optional coupon field raised missing-field exception in validate_coupon"
+    },
+    {
+      "timestamp": "2026-09-26T14:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-004-fail",
+      "component": "http",
+      "message": "legacy coupon checkout returned HTTP 500; ordinary checkout remained successful"
+    }
+  ]
+}

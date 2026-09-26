@@ -1,0 +1,26 @@
+{
+  "service": "catalog-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T17:57:00.000Z",
+      "cache_hit_percent": 92,
+      "redis_connection_errors_1m": 0,
+      "db_reads_1m": 40,
+      "request_p95_ms": 75
+    },
+    {
+      "observed_at": "2026-09-26T17:59:30.000Z",
+      "cache_hit_percent": 38,
+      "redis_connection_errors_1m": 0,
+      "db_reads_1m": 390,
+      "request_p95_ms": 260
+    },
+    {
+      "observed_at": "2026-09-26T18:01:00.000Z",
+      "cache_hit_percent": 12,
+      "redis_connection_errors_1m": 0,
+      "db_reads_1m": 820,
+      "request_p95_ms": 430
+    }
+  ]
+}

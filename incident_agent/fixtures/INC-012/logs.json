@@ -1,0 +1,19 @@
+{
+  "service": "email-worker",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T21:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-012-early",
+      "component": "worker",
+      "message": "job failed; retry scheduled"
+    },
+    {
+      "timestamp": "2026-09-26T22:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-012-fail",
+      "component": "worker",
+      "message": "job failed; retry scheduled"
+    }
+  ]
+}
