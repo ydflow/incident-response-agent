@@ -12,20 +12,20 @@
 
 ## 案例总览
 
-| Case ID | 故障模式 | 调查阶段预期状态 |
-| --- | --- | --- |
-| INC-001 | 数据库连接池配置错误 | `DIAGNOSED` |
-| INC-002 | Redis / Cache 不可用 | `DIAGNOSED` |
-| INC-003 | 上游依赖持续返回 5xx | `DIAGNOSED` |
-| INC-004 | 错误部署引入功能回归 | `DIAGNOSED` |
-| INC-005 | 过密任务触发 CPU 异常 | `DIAGNOSED` |
-| INC-006 | 请求数据未释放导致内存压力 | `DIAGNOSED` |
-| INC-007 | 环境配置指向错误地址 | `DIAGNOSED` |
-| INC-008 | 缓存 TTL 过短导致命中率异常 | `DIAGNOSED` |
-| INC-009 | 数据库缺失索引导致慢查询 | `DIAGNOSED` |
-| INC-010 | DNS 解析变慢导致依赖延迟 | `DIAGNOSED` |
-| INC-011 | 同一请求的证据互相冲突 | `ESCALATED` |
-| INC-012 | 缺少判定根因的关键证据 | `ESCALATED` |
+| Case ID | 故障模式                    | 调查阶段预期状态 |
+| ------- | --------------------------- | ---------------- |
+| INC-001 | 数据库连接池配置错误        | `DIAGNOSED`      |
+| INC-002 | Redis / Cache 不可用        | `DIAGNOSED`      |
+| INC-003 | 上游依赖持续返回 5xx        | `DIAGNOSED`      |
+| INC-004 | 错误部署引入功能回归        | `DIAGNOSED`      |
+| INC-005 | 过密任务触发 CPU 异常       | `DIAGNOSED`      |
+| INC-006 | 请求数据未释放导致内存压力  | `DIAGNOSED`      |
+| INC-007 | 环境配置指向错误地址        | `DIAGNOSED`      |
+| INC-008 | 缓存 TTL 过短导致命中率异常 | `DIAGNOSED`      |
+| INC-009 | 数据库缺失索引导致慢查询    | `DIAGNOSED`      |
+| INC-010 | DNS 解析变慢导致依赖延迟    | `DIAGNOSED`      |
+| INC-011 | 同一请求的证据互相冲突      | `ESCALATED`      |
+| INC-012 | 缺少判定根因的关键证据      | `ESCALATED`      |
 
 ## INC-001 · 数据库连接池配置错误
 
