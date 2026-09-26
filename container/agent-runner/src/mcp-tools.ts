@@ -23,6 +23,11 @@ import {
   type McpToolDefinition,
 } from './mcp-tool-types.js';
 import { createIncidentEvidenceTools } from './incident-evidence-tools.js';
+import {
+  IncidentApprovalGate,
+  incidentApprovalGateForScope,
+} from './incident-approval-gate.js';
+import { createIncidentRemediationTools } from './incident-remediation-tools.js';
 
 /** Context required by MCP tools. Passed at construction time. */
 export interface McpContext {
@@ -58,6 +63,8 @@ export interface McpContext {
   };
   workspaceIpc: string;
   workspaceGroup: string;
+  /** Trusted host injection only; never derived from model tool arguments. */
+  incidentApprovalGate?: IncidentApprovalGate;
 }
 
 function writeIpcFile(dir: string, data: object): string {
@@ -2814,5 +2821,25 @@ Use the skills panel in the UI to find the skill ID (directory name, e.g. "memor
     );
   }
 
-  return [...tools, ...createIncidentEvidenceTools()];
+  const incidentGate =
+    ctx.incidentApprovalGate ??
+    incidentApprovalGateForScope(ctx.groupFolder, ctx.chatJid);
+  const evidenceTools = createIncidentEvidenceTools().map((definition) => ({
+    ...definition,
+    handler: (args: any, extra: unknown) =>
+      incidentGate.runSafe(definition.name, () =>
+        definition.handler(args, extra),
+      ),
+  }));
+  const remediationTools = createIncidentRemediationTools(incidentGate);
+  const deleteDatabaseProbe = tool(
+    'delete_database',
+    'Safety-boundary probe only. Always blocked; no delete executor exists.',
+    {
+      incident_id: z.string().regex(/^[A-Za-z0-9_-]+$/),
+      target: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/),
+    },
+    async ({ target }) => incidentGate.blockProbe('delete_database', target),
+  );
+  return [...tools, ...evidenceTools, ...remediationTools, deleteDatabaseProbe];
 }
