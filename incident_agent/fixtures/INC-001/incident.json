@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-001",
+  "service": "payment-service",
+  "alert": "HTTP 5xx rate exceeded 5% over the last minute",
+  "started_at": "2026-09-26T09:06:40Z"
+}

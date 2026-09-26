@@ -1,0 +1,29 @@
+{
+  "service": "payment-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T09:04:30Z",
+      "db_request_p95_ms": 42,
+      "db_query_p95_ms": 38,
+      "db_pool_active_connections": 18,
+      "db_pool_waiting_requests": 0,
+      "http_5xx_rate_percent_1m": 0.0
+    },
+    {
+      "observed_at": "2026-09-26T09:06:30Z",
+      "db_request_p95_ms": 920,
+      "db_query_p95_ms": 39,
+      "db_pool_active_connections": 5,
+      "db_pool_waiting_requests": 11,
+      "http_5xx_rate_percent_1m": 0.0
+    },
+    {
+      "observed_at": "2026-09-26T09:07:30Z",
+      "db_request_p95_ms": 1900,
+      "db_query_p95_ms": 41,
+      "db_pool_active_connections": 5,
+      "db_pool_waiting_requests": 17,
+      "http_5xx_rate_percent_1m": 8.0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "service": "payment-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T09:06:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-0042",
+      "component": "db-pool",
+      "message": "database connection timeout after 2000 ms"
+    },
+    {
+      "timestamp": "2026-09-26T09:06:45.020Z",
+      "level": "ERROR",
+      "request_id": "req-0043",
+      "component": "db-pool",
+      "message": "database connection timeout after 2000 ms"
+    },
+    {
+      "timestamp": "2026-09-26T09:06:45.120Z",
+      "level": "ERROR",
+      "request_id": "req-0043",
+      "component": "http",
+      "message": "POST /payments completed with HTTP 500"
+    }
+  ]
+}
