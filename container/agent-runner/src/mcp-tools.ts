@@ -28,6 +28,7 @@ import {
   incidentApprovalGateForScope,
 } from './incident-approval-gate.js';
 import { createIncidentRemediationTools } from './incident-remediation-tools.js';
+import { withIncidentToolEvents } from './incident-tool-events.js';
 
 /** Context required by MCP tools. Passed at construction time. */
 export interface McpContext {
@@ -2823,15 +2824,31 @@ Use the skills panel in the UI to find the skill ID (directory name, e.g. "memor
 
   const incidentGate =
     ctx.incidentApprovalGate ??
-    incidentApprovalGateForScope(ctx.groupFolder, ctx.chatJid);
-  const evidenceTools = createIncidentEvidenceTools().map((definition) => ({
-    ...definition,
-    handler: (args: any, extra: unknown) =>
-      incidentGate.runSafe(definition.name, () =>
-        definition.handler(args, extra),
-      ),
-  }));
-  const remediationTools = createIncidentRemediationTools(incidentGate);
+    incidentApprovalGateForScope(
+      ctx.groupFolder,
+      ctx.chatJid,
+      path.join(ctx.workspaceGroup, 'runs'),
+    );
+  const evidenceTools = createIncidentEvidenceTools().map((definition) =>
+    withIncidentToolEvents(
+      {
+        ...definition,
+        handler: (args: any, extra: unknown) =>
+          incidentGate.runSafe(definition.name, () =>
+            definition.handler(args, extra),
+          ),
+      },
+      incidentGate.events,
+      {
+        collectsEvidence: true,
+        evidence: incidentGate.evidence,
+        timeoutMs: 5_000,
+      },
+    ),
+  );
+  const remediationTools = createIncidentRemediationTools(incidentGate).map(
+    (definition) => withIncidentToolEvents(definition, incidentGate.events),
+  );
   const deleteDatabaseProbe = tool(
     'delete_database',
     'Safety-boundary probe only. Always blocked; no delete executor exists.',
@@ -2841,5 +2858,10 @@ Use the skills panel in the UI to find the skill ID (directory name, e.g. "memor
     },
     async ({ target }) => incidentGate.blockProbe('delete_database', target),
   );
-  return [...tools, ...evidenceTools, ...remediationTools, deleteDatabaseProbe];
+  return [
+    ...tools,
+    ...evidenceTools,
+    ...remediationTools,
+    withIncidentToolEvents(deleteDatabaseProbe, incidentGate.events),
+  ];
 }

@@ -2,6 +2,11 @@
 import { randomUUID } from 'node:crypto';
 import type { McpToolResult } from './mcp-tool-types.js';
 import {
+  InMemoryIncidentEvents,
+  JsonlIncidentEvents,
+} from './incident-agent-events.js';
+import { InMemoryIncidentEvidence } from './incident-evidence-collection.js';
+import {
   simulateRemediation,
   type RemediationRequest,
   type RemediationResult,
@@ -60,6 +65,8 @@ type GateOptions = {
   readPolicy?: (toolName: string) => RiskDecision | undefined;
   approvals?: ApprovalStore;
   executor?: (request: RemediationRequest) => Promise<RemediationResult>;
+  events?: InMemoryIncidentEvents;
+  evidence?: InMemoryIncidentEvidence;
 };
 
 function result(
@@ -89,12 +96,16 @@ function denied(action: string, target: string, reason: string): McpToolResult {
  * allow()/reject(); those methods are never registered as MCP tools.
  */
 export class IncidentApprovalGate {
+  readonly events: InMemoryIncidentEvents;
+  readonly evidence: InMemoryIncidentEvidence;
   private readonly readPolicy: NonNullable<GateOptions['readPolicy']>;
   private readonly approvals: ApprovalStore;
   private readonly executor: NonNullable<GateOptions['executor']>;
   private readonly pendingRequests = new Map<string, RemediationRequest>();
 
   constructor(options: GateOptions = {}) {
+    this.events = options.events ?? new InMemoryIncidentEvents();
+    this.evidence = options.evidence ?? new InMemoryIncidentEvidence();
     this.readPolicy = options.readPolicy ?? ((name) => POLICY[name]);
     this.approvals = options.approvals ?? new InMemoryApprovalStore();
     this.executor =
@@ -152,6 +163,12 @@ export class IncidentApprovalGate {
         message: 'Approval state is unavailable; action was not executed.',
       };
     }
+    this.events.emit(request.incident_id, 'ApprovalRequested', {
+      approval_id: id,
+      action: request.action,
+      target: request.target,
+      status: 'AWAITING_APPROVAL',
+    });
     return {
       action: request.action,
       incident_id: request.incident_id,
@@ -204,10 +221,35 @@ export class IncidentApprovalGate {
       );
     }
     this.pendingRequests.delete(approvalId);
+    this.events.emit(record.request.incident_id, 'ApprovalDecided', {
+      approval_id: approvalId,
+      decision: 'allow',
+      actor: humanActor,
+      action: record.request.action,
+    });
     try {
       const executed = await this.executor(record.request);
+      if (executed.status === 'simulated_success') {
+        this.events.emit(record.request.incident_id, 'ActionExecuted', {
+          approval_id: approvalId,
+          action: executed.action,
+          target: executed.target,
+          status: executed.status,
+        });
+      } else {
+        this.events.emit(record.request.incident_id, 'ToolFailed', {
+          approval_id: approvalId,
+          tool: record.request.action,
+          reason: 'Executor did not report simulated_success.',
+        });
+      }
       return { content: [{ type: 'text', text: JSON.stringify(executed) }] };
     } catch {
+      this.events.emit(record.request.incident_id, 'ToolFailed', {
+        approval_id: approvalId,
+        tool: record.request.action,
+        reason: 'Simulation failed.',
+      });
       return denied(
         record.request.action,
         record.request.target,
@@ -255,6 +297,12 @@ export class IncidentApprovalGate {
       );
     }
     this.pendingRequests.delete(approvalId);
+    this.events.emit(record.request.incident_id, 'ApprovalDecided', {
+      approval_id: approvalId,
+      decision: 'reject',
+      actor: humanActor,
+      action: record.request.action,
+    });
     return result(
       record.request.action,
       record.request.target,
@@ -281,11 +329,16 @@ const gatesByScope = new Map<string, IncidentApprovalGate>();
 export function incidentApprovalGateForScope(
   groupFolder: string,
   chatJid: string,
+  eventDirectory?: string,
 ): IncidentApprovalGate {
   const scope = `${groupFolder}\0${chatJid}`;
   let gate = gatesByScope.get(scope);
   if (!gate) {
-    gate = new IncidentApprovalGate();
+    gate = new IncidentApprovalGate({
+      events: eventDirectory
+        ? new JsonlIncidentEvents(eventDirectory)
+        : undefined,
+    });
     gatesByScope.set(scope, gate);
   }
   return gate;
