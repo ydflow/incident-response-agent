@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+from .events import EventType, InMemoryEventStore
 from .models import Incident
 
 
@@ -33,6 +34,11 @@ _ALLOWED_TRANSITIONS: dict[IncidentStatus, frozenset[IncidentStatus]] = {
 }
 
 
+def is_legal_transition(current: IncidentStatus, target: IncidentStatus) -> bool:
+    """Read-only check shared by live transitions and historical replay."""
+    return target in _ALLOWED_TRANSITIONS[current]
+
+
 class InvalidTransitionError(ValueError):
     """调用方可通过错误类型或 code 识别非法转换。"""
 
@@ -50,13 +56,21 @@ class InvalidTransitionError(ValueError):
 class IncidentLifecycle:
     """持有单个 Incident 的当前状态；不向 Agent 暴露任意状态写入接口。"""
 
-    __slots__ = ("_incident_id", "_status")
+    __slots__ = ("_incident_id", "_status", "_events")
 
-    def __init__(self, incident: Incident) -> None:
+    def __init__(
+        self, incident: Incident, events: InMemoryEventStore | None = None
+    ) -> None:
         if not isinstance(incident, Incident):
             raise TypeError("incident must be a validated Incident")
         self._incident_id = incident.incident_id
         self._status = IncidentStatus.RECEIVED
+        self._events = events if events is not None else InMemoryEventStore()
+        self._events.emit(
+            self._incident_id,
+            EventType.INCIDENT_CREATED,
+            {"service": incident.service, "status": self._status.value},
+        )
 
     @property
     def incident_id(self) -> str:
@@ -66,12 +80,21 @@ class IncidentLifecycle:
     def status(self) -> IncidentStatus:
         return self._status
 
+    @property
+    def events(self) -> InMemoryEventStore:
+        return self._events
+
     def transition_to(self, target: IncidentStatus) -> IncidentStatus:
         """先检查转换表；合法时才修改状态，失败时保持原状态。"""
         if not isinstance(target, IncidentStatus):
             raise TypeError("target must be an IncidentStatus")
         current = self._status
-        if target not in _ALLOWED_TRANSITIONS[current]:
+        if not is_legal_transition(current, target):
             raise InvalidTransitionError(self._incident_id, current, target)
         self._status = target
+        self._events.emit(
+            self._incident_id,
+            EventType.STATUS_CHANGED,
+            {"from": current.value, "to": target.value},
+        )
         return self._status

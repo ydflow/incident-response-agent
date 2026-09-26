@@ -8,6 +8,8 @@ import {
   getEnabledProviders,
 } from '../src/runtime-config.js';
 import { createMcpTools } from '../container/agent-runner/src/mcp-tools.js';
+import { IncidentApprovalGate } from '../container/agent-runner/src/incident-approval-gate.js';
+import { JsonlIncidentEvents } from '../container/agent-runner/src/incident-agent-events.js';
 import { adaptClaudeMcpToolsToPi } from '../container/agent-runner/src/runtime/pi/pi-tools.js';
 import { PiRuntimeAdapter } from '../container/agent-runner/src/runtime/pi/pi-runtime.js';
 
@@ -31,6 +33,10 @@ async function main(): Promise<void> {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'miniclaw-inc001-demo-'));
   try {
     stage = 'create_session';
+    const runDirectory = process.env.MINICLAW_INCIDENT_RUNS_DIR;
+    const incidentGate = new IncidentApprovalGate({
+      events: runDirectory ? new JsonlIncidentEvents(runDirectory) : undefined,
+    });
     const definitions = createMcpTools({
       chatJid: 'demo:INC-001',
       groupFolder: 'demo',
@@ -40,6 +46,7 @@ async function main(): Promise<void> {
       ownerProfileEnabled: false,
       workspaceIpc: path.join(temp, 'ipc'),
       workspaceGroup: temp,
+      incidentApprovalGate: incidentGate,
     }).filter((tool) => names.includes(tool.name));
     const customTools = adaptClaudeMcpToolsToPi(definitions, {
       namespace: 'mcp__miniclaw',
@@ -132,7 +139,17 @@ async function main(): Promise<void> {
     ) {
       throw new Error('Agent Diagnosis referenced an unobserved Evidence ID.');
     }
-    const output = { incident_id: 'INC-001', tool_calls: toolCalls, diagnosis };
+    incidentGate.events.emit('INC-001', 'DiagnosisCreated', {
+      evidence_ids: diagnosis.evidence_ids,
+      confidence: diagnosis.confidence,
+      root_cause: diagnosis.root_cause,
+    });
+    const output = {
+      incident_id: 'INC-001',
+      tool_calls: toolCalls,
+      diagnosis,
+      events: incidentGate.events.snapshot(),
+    };
     stage = 'persist';
     const outputFile = path.resolve('data/incident-demo/INC-001-last-run.json');
     fs.mkdirSync(path.dirname(outputFile), { recursive: true });

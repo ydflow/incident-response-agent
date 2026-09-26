@@ -91,9 +91,13 @@ function defaultFixtureRoot(): string {
   );
 }
 
-async function readText(file: string, missingCode: string): Promise<string> {
+async function readText(
+  file: string,
+  missingCode: string,
+  signal?: AbortSignal,
+): Promise<string> {
   try {
-    const text = await readFile(file, 'utf8');
+    const text = await readFile(file, { encoding: 'utf8', signal });
     if (!text.trim())
       throw new FixtureError('empty_data', 'Fixture data is empty.');
     return text;
@@ -109,8 +113,9 @@ async function readJson<T>(
   file: string,
   schema: z.ZodType<T>,
   missingCode = 'fixture_missing',
+  signal?: AbortSignal,
 ): Promise<T> {
-  const text = await readText(file, missingCode);
+  const text = await readText(file, missingCode, signal);
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -162,6 +167,7 @@ async function query(
   root: string,
   incidentId: string,
   source: Source,
+  signal?: AbortSignal,
 ): Promise<McpToolResult> {
   try {
     if (!/^[A-Za-z0-9_-]+$/.test(incidentId)) {
@@ -179,6 +185,8 @@ async function query(
     const incident = await readJson(
       path.join(folder, 'incident.json'),
       incidentSchema,
+      'fixture_missing',
+      signal,
     );
     if (incident.incident_id !== incidentId)
       throw new FixtureError(
@@ -190,7 +198,12 @@ async function query(
     let content: string;
     let correlationId = incidentId;
     if (source === 'logs') {
-      const logs = await readJson(path.join(folder, 'logs.json'), logSchema);
+      const logs = await readJson(
+        path.join(folder, 'logs.json'),
+        logSchema,
+        'fixture_missing',
+        signal,
+      );
       if (logs.service !== incident.service)
         throw new FixtureError(
           'invalid_fixture',
@@ -204,6 +217,8 @@ async function query(
       const metrics = await readJson(
         path.join(folder, 'metrics.json'),
         metricsSchema,
+        'fixture_missing',
+        signal,
       );
       if (metrics.service !== incident.service)
         throw new FixtureError(
@@ -216,6 +231,8 @@ async function query(
       const traces = await readJson(
         path.join(folder, 'trace.json'),
         traceSchema,
+        'fixture_missing',
+        signal,
       );
       if (traces.service !== incident.service)
         throw new FixtureError(
@@ -233,6 +250,7 @@ async function query(
       const patch = await readText(
         path.join(folder, 'git_diff.patch'),
         'fixture_missing',
+        signal,
       );
       const date = patch.match(/^Date: (.+)$/m)?.[1];
       const parsedDate = date ? new Date(date) : new Date(NaN);
@@ -290,8 +308,13 @@ export function createIncidentEvidenceTools(
       ],
     ] as const
   ).map(([name, source, description]) =>
-    defineMcpTool(name, description, args, async ({ incident_id }) =>
-      query(root, incident_id, source),
+    defineMcpTool(name, description, args, async ({ incident_id }, extra) =>
+      query(
+        root,
+        incident_id,
+        source,
+        (extra as { signal?: AbortSignal } | null)?.signal,
+      ),
     ),
   );
 }
