@@ -59,5 +59,9 @@ jobs:
       - name: Mobile browser interaction tests
         run: npm --prefix web run test:e2e
 
+      - name: Incident console desktop browser tests
+        working-directory: web
+        run: npx playwright test --config=playwright.console.config.ts
+
       - name: Agent runner self-test
         run: npm run self-test:agent-runner
