@@ -98,7 +98,9 @@ test('console routes, real catalog, filters and desktop shell', async ({
     snapshot.incidents[0].id,
   );
   await expect(page.locator('.ic-evaluation-strip')).toContainText(
-    `${evaluation.passed} / ${evaluation.total}`,
+    evaluation.available
+      ? `${evaluation.passed} / ${evaluation.total}`
+      : '暂无可核验的评测结果',
   );
   await page
     .getByRole('button', { name: `查看 ${snapshot.incidents[1].id} 首页详情` })
@@ -240,15 +242,23 @@ test('console routes, real catalog, filters and desktop shell', async ({
     path: testInfo.outputPath('traces.png'),
     fullPage: true,
   });
-  await page.getByRole('button', { name: '下一步' }).click();
-  await expect(page.locator('.ic-trace-timeline li')).toHaveCount(1);
-  await page.getByRole('button', { name: '重新开始' }).click();
-  await expect(page.locator('.ic-trace-timeline li')).toHaveCount(0);
+  if (runs.length) {
+    await page.getByRole('button', { name: '下一步' }).click();
+    await expect(page.locator('.ic-trace-timeline li')).toHaveCount(1);
+    await page.getByRole('button', { name: '重新开始' }).click();
+    await expect(page.locator('.ic-trace-timeline li')).toHaveCount(0);
+  } else {
+    await expect(page.getByText('暂无可访问的追踪记录')).toBeVisible();
+  }
   await page.goto('/evaluations');
   await expect(page.getByRole('heading', { name: '评测中心' })).toBeVisible();
   await expect(
-    page.getByText(`${evaluation.passed} / ${evaluation.total}`).first(),
-  ).toBeVisible();
+    page.locator('.ic-eval-summary .ic-card').first().locator('strong'),
+  ).toHaveText(
+    evaluation.available
+      ? `${evaluation.passed} / ${evaluation.total}`
+      : '— / —',
+  );
   await expect(page.locator('.ic-case-table tbody tr')).toHaveCount(
     evaluation.dataset.total,
   );
