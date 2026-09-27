@@ -1,39 +1,33 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import {
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  LockKeyhole,
+  UserRound,
+} from 'lucide-react';
 import { LogoLoading } from '../components/common/LogoLoading';
-
 import { useAuthStore } from '../stores/auth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-
-// --- Helpers ---
-
-function getErrorMessage(err: unknown, fallback: string): string {
-  if (typeof err === 'object' && err !== null && 'message' in err) {
-    const msg = (err as { message?: unknown }).message;
-    if (typeof msg === 'string' && msg.trim()) return msg;
-  }
-  if (err instanceof Error && err.message) return err.message;
-  return fallback;
-}
-
-// --- Component ---
+import {
+  AuthCard,
+  AuthLayout,
+  authErrorMessage,
+} from '../features/incident-console/AuthLayout';
+import '../features/incident-console/auth.css';
 
 export function SetupPage() {
   const navigate = useNavigate();
-  const { initialized, authenticated, setupAdmin, checkStatus } = useAuthStore();
+  const { initialized, authenticated, setupAdmin, checkStatus } =
+    useAuthStore();
 
-  // Check initialization status on mount (this is a public page, no AuthGuard)
   useEffect(() => {
-    if (initialized === null) {
-      checkStatus();
-    }
+    if (initialized === null) checkStatus();
   }, [initialized, checkStatus]);
 
-  // If system is already initialized, redirect to login
   useEffect(() => {
     if (initialized === true && !authenticated) {
       navigate('/login', { replace: true });
@@ -44,40 +38,24 @@ export function SetupPage() {
     return <Navigate to="/setup/providers" replace />;
   }
 
-  // Loading or redirecting
   if (initialized !== false) {
     return <LogoLoading full />;
   }
 
   return (
-    <div className="h-screen bg-background overflow-y-auto p-4 flex flex-col items-center justify-center">
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden">
-              <img src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="Miniclaw" className="w-full h-full object-cover" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Miniclaw 初始设置</h1>
-          <p className="text-sm text-muted-foreground">先创建管理员账号，完成后进入后台继续配置飞书 Token 与 Claude Key</p>
-        </div>
-
-        {/* Step card */}
-        <Card className="shadow-sm">
-          <CardContent>
-            <CreateAdminStep
-              onDone={() => navigate('/setup/providers', { replace: true })}
-              setupAdmin={setupAdmin}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <AuthLayout>
+      <AuthCard
+        title="初始化故障智巡"
+        description="创建管理员账号，完成后进入系统配置。"
+      >
+        <CreateAdminStep
+          onDone={() => navigate('/setup/providers', { replace: true })}
+          setupAdmin={setupAdmin}
+        />
+      </AuthCard>
+    </AuthLayout>
   );
 }
-
-// --- Create Admin Step ---
 
 function CreateAdminStep({
   onDone,
@@ -93,114 +71,170 @@ function CreateAdminStep({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+
     if (!username.trim()) {
-      setError('请填写用户名');
+      setError('请填写用户名。');
       return;
     }
     if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
-      setError('用户名须为 3-32 位字母、数字或下划线');
-      return;
-    }
-    if (!password) {
-      setError('请填写密码');
+      setError('用户名须为 3-32 位字母、数字或下划线。');
       return;
     }
     if (password.length < 8) {
-      setError('密码至少 8 位');
+      setError('密码至少需要 8 位。');
+      return;
+    }
+    if (password.length > 128) {
+      setError('密码不能超过 128 位。');
       return;
     }
     if (password !== confirmPwd) {
-      setError('两次输入的密码不一致');
+      setError('两次输入的密码不一致。');
       return;
     }
+
     setSaving(true);
-    setError(null);
+    setError('');
     try {
       await setupAdmin(username, password);
       onDone();
-    } catch (err) {
+    } catch (setupError) {
       const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? Number((err as { status?: unknown }).status)
+        typeof setupError === 'object' &&
+        setupError !== null &&
+        'status' in setupError
+          ? Number((setupError as { status?: unknown }).status)
           : NaN;
+      setError(authErrorMessage(setupError, 'setup'));
       if (status === 403) {
-        setError('系统已被其他管理员初始化，即将跳转到登录页...');
-        setTimeout(() => { navigate('/login', { replace: true }); }, 2000);
-        return;
+        window.setTimeout(() => navigate('/login', { replace: true }), 1800);
       }
-      setError(getErrorMessage(err, '创建管理员失败'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-foreground mb-1">创建管理员账号</h2>
-      <p className="text-sm text-muted-foreground mb-4">首次使用请先创建管理员，提交后进入系统接入配置向导。</p>
+    <form onSubmit={handleSubmit}>
+      <p className="incident-auth__setup-intro">
+        首次使用请创建管理员账号，随后继续配置服务接入。
+      </p>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-error-bg border border-error/30 text-error text-sm">{error}</div>
+        <div className="incident-auth__error" role="alert" aria-live="polite">
+          {error}
+        </div>
       )}
 
-      <div className="space-y-3">
-        <div>
-          <Label className="mb-1">用户名</Label>
+      <div className="incident-auth__field">
+        <label className="incident-auth__field-label" htmlFor="setup-username">
+          管理员用户名
+        </label>
+        <div className="incident-auth__input-wrap">
+          <UserRound
+            className="incident-auth__input-icon"
+            size={17}
+            aria-hidden="true"
+          />
           <Input
-            type="text"
+            id="setup-username"
+            className="incident-auth__input"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(event) => setUsername(event.target.value)}
             placeholder="3-32 位字母、数字或下划线"
+            required
             autoFocus
+            autoComplete="username"
+            aria-label="管理员用户名"
           />
         </div>
-        <div>
-          <Label className="mb-1">密码</Label>
-          <div className="relative">
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-              placeholder="至少 8 位"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-        <div>
-          <Label className="mb-1">确认密码</Label>
-          <div className="relative">
-            <Input
-              type={showConfirm ? 'text' : 'password'}
-              value={confirmPwd}
-              onChange={(e) => setConfirmPwd(e.target.value)}
-              className="pr-10"
-              placeholder="再次输入密码"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-        <Button onClick={handleSubmit} disabled={saving} className="w-full mt-2">
-          {saving && <Loader2 className="size-4 animate-spin" />}
-          创建账号并下一步
-          <ChevronRight className="w-4 h-4" />
-        </Button>
       </div>
-    </div>
+
+      <div className="incident-auth__field">
+        <label className="incident-auth__field-label" htmlFor="setup-password">
+          设置密码
+        </label>
+        <div className="incident-auth__input-wrap">
+          <LockKeyhole
+            className="incident-auth__input-icon"
+            size={17}
+            aria-hidden="true"
+          />
+          <Input
+            id="setup-password"
+            className="incident-auth__input"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="至少 8 位"
+            required
+            autoComplete="new-password"
+            aria-label="设置管理员密码"
+          />
+          <button
+            className="incident-auth__password-toggle"
+            type="button"
+            aria-label={showPassword ? '隐藏密码' : '显示密码'}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((visible) => !visible)}
+          >
+            {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </div>
+      </div>
+
+      <div className="incident-auth__field">
+        <label
+          className="incident-auth__field-label"
+          htmlFor="setup-password-confirm"
+        >
+          确认密码
+        </label>
+        <div className="incident-auth__input-wrap">
+          <LockKeyhole
+            className="incident-auth__input-icon"
+            size={17}
+            aria-hidden="true"
+          />
+          <Input
+            id="setup-password-confirm"
+            className="incident-auth__input"
+            type={showConfirm ? 'text' : 'password'}
+            value={confirmPwd}
+            onChange={(event) => setConfirmPwd(event.target.value)}
+            placeholder="再次输入密码"
+            required
+            autoComplete="new-password"
+            aria-label="确认管理员密码"
+          />
+          <button
+            className="incident-auth__password-toggle"
+            type="button"
+            aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
+            aria-pressed={showConfirm}
+            onClick={() => setShowConfirm((visible) => !visible)}
+          >
+            {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </div>
+      </div>
+
+      <Button
+        className="incident-auth__submit w-full"
+        type="submit"
+        disabled={saving}
+      >
+        {saving ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : null}
+        {saving ? '正在创建…' : '创建管理员并继续'}
+        {!saving && <ChevronRight className="size-4" aria-hidden="true" />}
+      </Button>
+    </form>
   );
 }

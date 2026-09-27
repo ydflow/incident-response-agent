@@ -5,10 +5,10 @@ import { shouldPreloadChatRoute } from './chat-route-preload';
 
 describe('chat route preload policy', () => {
   test.each([
-    ['/', '', '/', true],
+    ['/', '', '/', false],
     ['/chat', '', '/', true],
     ['/chat/workspace', '', '/', true],
-    ['/miniclaw/', '', '/miniclaw/', true],
+    ['/miniclaw/', '', '/miniclaw/', false],
     ['/miniclaw/chat/workspace', '', '/miniclaw/', true],
     ['/miniclaw/', '#/chat/workspace?agent=one', '/miniclaw/', true],
     ['/login', '', '/', false],

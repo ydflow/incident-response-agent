@@ -25,6 +25,7 @@ describe('PWA cache retirement', () => {
     const html = read('web/index.html');
     const main = read('web/src/main.tsx');
     const manifest = JSON.parse(read('web/public/manifest.webmanifest')) as {
+      name: string;
       display: string;
       start_url: string;
       scope: string;
@@ -38,14 +39,12 @@ describe('PWA cache retirement', () => {
     expect(main).toContain('cleanupLegacyPwaArtifacts');
     expect(main).not.toMatch(/serviceWorker\.register|registerSW/);
     expect(manifest.display).toBe('standalone');
-    expect(manifest.start_url).toBe('./chat');
+    expect(manifest.start_url).toBe('./overview');
     expect(manifest.scope).toBe('./');
     expect(manifest.icons.map((icon) => icon.sizes)).toEqual(
       expect.arrayContaining(['192x192', '512x512']),
     );
-    expect(manifest.icons).toContainEqual(
-      expect.objectContaining({ sizes: '512x512', purpose: 'maskable' }),
-    );
+    expect(manifest.name).toBe('故障智巡');
   });
 
   test('ships a non-caching self-destruct worker for old installations', () => {

@@ -17,6 +17,17 @@ import { AppLayout } from './components/layout/AppLayout';
 import { APP_BASE, shouldUseHashRouter } from './utils/url';
 import { shouldPreloadChatRoute } from './utils/chat-route-preload';
 import { Toaster } from '@/components/ui/sonner';
+import { ConsoleLayout } from './features/incident-console/ConsoleLayout';
+import {
+  OverviewPage,
+  IncidentsPage,
+  ConsolePendingPage,
+} from './features/incident-console/ConsolePages';
+import {
+  ApprovalsPage,
+  TracesPage,
+  EvaluationsPage,
+} from './features/incident-console/PhaseTwoPages';
 
 let chatPagePromise:
   | Promise<{ default: typeof import('./pages/ChatPage').ChatPage }>
@@ -125,7 +136,23 @@ const appRoutes = createRoutesFromElements(
       }
     />
 
-    {/* Protected Routes with Layout */}
+    <Route
+      element={
+        <AuthGuard>
+          <ConsoleLayout />
+        </AuthGuard>
+      }
+    >
+      <Route path="/overview" element={<OverviewPage />} />
+      <Route path="/incidents" element={<IncidentsPage />} />
+      <Route path="/approvals" element={<ApprovalsPage />} />
+      <Route path="/traces" element={<TracesPage />} />
+      <Route path="/evaluations" element={<EvaluationsPage />} />
+      {['investigations', 'services', 'system-settings'].map((path) => (
+        <Route key={path} path={`/${path}`} element={<ConsolePendingPage />} />
+      ))}
+    </Route>
+    {/* Existing workspace routes remain available for configuration compatibility. */}
     <Route
       element={
         <AuthGuard>
@@ -249,8 +276,8 @@ const appRoutes = createRoutesFromElements(
     </Route>
 
     {/* Default redirect — go through AuthGuard to detect setup state */}
-    <Route path="/" element={<Navigate to="/chat" replace />} />
-    <Route path="*" element={<Navigate to="/chat" replace />} />
+    <Route path="/" element={<Navigate to="/overview" replace />} />
+    <Route path="*" element={<Navigate to="/overview" replace />} />
   </>,
 );
 
