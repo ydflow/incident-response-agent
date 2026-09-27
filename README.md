@@ -41,11 +41,11 @@ flowchart LR
 
 四个工具通过 MiniClaw 的 MCP Tool Layer 调用 [`incident_agent/fixtures/`](incident_agent/fixtures/) 中的数据；查询结果被整理为带来源、时间和 ID 的 Evidence。
 
-| Tool | 返回的模拟证据 |
-| --- | --- |
-| `query_logs` | 故障窗口内的日志 |
-| `query_metrics` | 指标时间序列 |
-| `query_trace` | 请求链路；也可能为空 |
+| Tool             | 返回的模拟证据                       |
+| ---------------- | ------------------------------------ |
+| `query_logs`     | 故障窗口内的日志                     |
+| `query_metrics`  | 指标时间序列                         |
+| `query_trace`    | 请求链路；也可能为空                 |
 | `query_git_diff` | 相关配置或代码变更；也可能无相关变更 |
 
 数据模型见 [`incident_agent/models.py`](incident_agent/models.py)，Fixture Loader 与工具实现见 [`incident-evidence-tools.ts`](container/agent-runner/src/incident-evidence-tools.ts)。正常或空结果同样是调查结果，不会被强行解释为异常。
@@ -54,11 +54,11 @@ flowchart LR
 
 策略在工具执行前判定，实现在 [`incident-approval-gate.ts`](container/agent-runner/src/incident-approval-gate.ts)：
 
-| 决策 | 当前工具 | 行为 |
-| --- | --- | --- |
-| `SAFE` | 四个 `query_*` 工具 | 允许只读 Fixture 查询 |
-| `ASK` | `restart_service`、`rollback_config`、`modify_config` | 创建待审批请求；Agent 自己不能批准 |
-| `BLOCK` | `delete_database` 及未知或策略异常的调用 | 拒绝执行 |
+| 决策    | 当前工具                                              | 行为                               |
+| ------- | ----------------------------------------------------- | ---------------------------------- |
+| `SAFE`  | 四个 `query_*` 工具                                   | 允许只读 Fixture 查询              |
+| `ASK`   | `restart_service`、`rollback_config`、`modify_config` | 创建待审批请求；Agent 自己不能批准 |
+| `BLOCK` | `delete_database` 及未知或策略异常的调用              | 拒绝执行                           |
 
 **Fail-Closed：**策略读取失败、审批状态不可用或审批记录不一致时，处置不会进入 Executor。`allow` / `reject` 只由可信宿主调用，不注册为 Agent 工具。即使人工批准，当前 Executor 也仅运行 [`incident-remediation-tools.ts`](container/agent-runner/src/incident-remediation-tools.ts) 中的模拟动作，不操作真实服务。状态流转由 [`incident_agent/state_machine.py`](incident_agent/state_machine.py) 约束。
 
@@ -78,14 +78,14 @@ flowchart LR
 
 评测答案单独位于 [`evaluation/expected_cases.json`](evaluation/expected_cases.json)，由测试读取；事故 Fixture Tool Adapter 只读取各案例目录。真实 Demo 进一步将 Agent 工具限制在四个查询工具和受审批控制的模拟处置工具。案例设计见 [`docs/incident-case-matrix.md`](docs/incident-case-matrix.md)。
 
-| Core test group | 数量 | 测试文件 |
-| --- | ---: | --- |
-| Schema | 18 | [`test_models.py`](incident_agent/tests/test_models.py) |
-| Workflow | 12 | [`test_workflow_acceptance.py`](incident_agent/tests/test_workflow_acceptance.py) |
-| Approval | 6 | [`test_approval_boundary.py`](incident_agent/tests/test_approval_boundary.py) |
-| Timeout | 3 | [`test_timeout_recovery.py`](incident_agent/tests/test_timeout_recovery.py) |
-| Replay | 3 | [`test_replay_acceptance.py`](incident_agent/tests/test_replay_acceptance.py) |
-| **合计** | **42** | `core` marker 定义于 [`pytest.ini`](pytest.ini) |
+| Core test group |   数量 | 测试文件                                                                          |
+| --------------- | -----: | --------------------------------------------------------------------------------- |
+| Schema          |     18 | [`test_models.py`](incident_agent/tests/test_models.py)                           |
+| Workflow        |     12 | [`test_workflow_acceptance.py`](incident_agent/tests/test_workflow_acceptance.py) |
+| Approval        |      6 | [`test_approval_boundary.py`](incident_agent/tests/test_approval_boundary.py)     |
+| Timeout         |      3 | [`test_timeout_recovery.py`](incident_agent/tests/test_timeout_recovery.py)       |
+| Replay          |      3 | [`test_replay_acceptance.py`](incident_agent/tests/test_replay_acceptance.py)     |
+| **合计**        | **42** | `core` marker 定义于 [`pytest.ini`](pytest.ini)                                   |
 
 Workflow 测试使用基于已返回 Evidence 的脚本化 planner，不依赖外部 LLM API；Fixture → MiniClaw Tool Layer → Evidence → Workflow / State → Diagnosis / Escalation 仍实际运行。这个机制保证 CI 可以重复验证，不代表每次真实模型运行都必然给出相同措辞或判断。
 
