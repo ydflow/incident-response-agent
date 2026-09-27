@@ -1,310 +1,147 @@
-# Miniclaw
+# Incident Response Agent
 
-> 本仓库是基于 [Miniclaw 原项目](https://github.com/helsome/miniclaw) 的二次开发基线，计划用于“线上服务故障排查与处置 Agent”。原项目版权和 MIT 许可证保留于 [LICENSE](LICENSE)。当前尚未加入故障排查功能。
+基于 [MiniClaw](https://github.com/helsome/miniclaw) 构建的**可控线上服务故障调查与处置 Agent**。它从模拟故障数据中调用工具取证，给出有证据引用的诊断；高风险处置须经过人工审批，执行历史可回放。
 
-<p align="center">
-  <img src="web/public/icons/logo-1024.png" alt="Miniclaw logo" width="96" />
-</p>
+**快速了解：**4 个只读取证工具 · 12 个模拟故障案例 · 42 项确定性核心测试 · 处置仅为模拟执行。
 
-<p align="center">
-  <strong>自托管、Pi Agent 驱动的多渠道智能体工作台</strong><br />
-  把 Agent、工作区、记忆、工具、渠道与自动化任务组织在同一个可控的运行环境中。
-</p>
+## Problem
 
-<p align="center">
-  <a href="https://github.com/helsome/miniclaw">GitHub</a> ·
-  <a href="docs/API.md">API</a> ·
-  <a href="docs/ACL-MATRIX.md">权限模型</a> ·
-  <a href="SECURITY.md">安全策略</a>
-</p>
+让 LLM 直接阅读告警并给出处置，容易遇到三个问题：缺少可核查的 Logs、Metrics、Trace、Git Diff 证据；模型建议的高风险动作不能直接执行；事后难以还原它调用了什么工具、依据什么证据、状态如何变化。本项目用结构化 Evidence、执行前策略和 AgentEvent 记录这些边界。
 
-> 一句话：聊天界面让你向 Agent 提问；Miniclaw 让 Agent 拥有长期运行的工作区、可审计的能力边界，以及能够被 Web、桌面端和消息渠道共同使用的运行时。
+## Core Workflow
 
-## 产品定位
-
-Miniclaw 是一个面向个人与团队的自托管 AI Agent 工作台。它不是一个只保存聊天记录的对话框，而是把以下对象放在同一个产品模型中：
-
-- Agent 身份、模型策略与能力配置。
-- Workspace 文件、执行环境、权限和渠道绑定。
-- 持久化 Session、流式输出、取消、恢复和后台运行。
-- Workspace 级 Memory、Skills、MCP、Plugins 与 Subagents。
-- Web、Electron Desktop、飞书、Telegram、QQ、钉钉、微信、Discord、WhatsApp 等入口。
-- Cron、间隔和一次性任务，以及任务运行历史、通知与恢复。
-
-Miniclaw 采用本地优先和显式集成的思路：数据库、工作区元数据、会话状态和配置由自己的服务管理；模型、消息渠道、Docker 与外部工具都作为可配置边界接入。
-
-## 界面与体验
-
-工作台围绕 `Agent → Workspace → Runtime Session` 组织信息。左侧导航提供工作台、智能体、能力库、任务、用量、账单和设置入口；进入工作台后，可以在同一个界面中切换 Agent、Workspace 和对话上下文。
-
-下面是当前桌面端工作台的实际界面：
-
-<p align="center">
-  <img src="docs/screenshots/workbench.png" alt="Miniclaw 智能体工作台" width="900" />
-</p>
-
-<p align="center">
-  <em>工作台：在同一个窗口中管理 Agent、Workspace、Session 与对话。</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/capabilities.png" alt="Miniclaw 能力库" width="49%" />
-  <img src="docs/screenshots/settings-models.png" alt="Miniclaw 模型配置" width="49%" />
-</p>
-
-<p align="center">
-  <em>能力库与模型配置：把 Skills、MCP、Plugins 和 Provider 配置放在清晰的管理边界内。</em>
-</p>
-
-新的 Miniclaw 图标同时用于 Web/PWA、Electron 窗口和安装包资源：
-
-<p align="center">
-  <img src="web/public/icons/logo-1024.png" alt="Miniclaw application icon" width="160" />
-</p>
-
-## 核心功能
-
-### Agent 与 Workspace
-
-- 用 Agent Profile 保存身份、模型、思考级别、Skills、MCP 与执行策略。
-- 每个 Workspace 拥有独立的文件、Session、Memory、渠道绑定和执行边界。
-- Home Workspace 与自定义 Agent 分层管理，支持创建、重命名、重建、清空和删除。
-- 支持 Host 与 Docker 两种执行方式；需要隔离的任务可以在 Agent Runner 容器中运行。
-
-### Pi Agent Runtime
-
-- 基于 Pi Agent Runtime 提供 prompt、流式输出、工具调用、Session 持久化与恢复。
-- 支持 abort、follow-up、原生 compaction 和持久化 JSONL Session。
-- 复用 Miniclaw 已有的 MCP capability handler，并映射为稳定的 `mcp__miniclaw__*` 工具。
-- Subagents 通过 Pi extension 与显式的 spawn/stop 生命周期桥接。
-- Runtime 不会静默假装拥有缺失能力；尚未接入 Pi 的 Web Search/Web Fetch 能力会保持明确不可用。
-
-### Memory 与上下文
-
-- Memory 按 Workspace 隔离，不在不同工作区之间隐式共享。
-- 支持事实、偏好、决策和经验等知识类型，以及搜索、编辑、忘记和版本历史。
-- 写入使用 revision 与 compare-and-set，避免并发编辑覆盖彼此的修改。
-- 每条 Memory 可记录来源 Session、来源类型、观察时间和变更历史，便于回溯 provenance。
-- Runtime 只注入当前 Workspace 允许使用的记忆，不把平台身份约束当作普通用户记忆。
-
-### Skills、MCP 与 Plugins
-
-- 内置、宿主机、项目、用户、Workspace 和 Plugin 层级的 Skills 统一解析。
-- 能力库集中展示 Skills、MCP 与 Plugins 的可用状态、依赖和能力预览。
-- Plugin Catalog 支持扫描、导入、版本快照和用户启用配置。
-- Agent 运行前会计算有效能力 Manifest，并把 Skills、MCP、Memory、Workspace 与渠道上下文按策略注入。
-- 路径穿越、符号链接逃逸、越权 Workspace 与未授权 capability 会在边界层拒绝。
-
-### 渠道与自动化
-
-- 支持将消息渠道绑定到指定 Workspace 或 Session，并按用户、群聊、话题和 owner 规则进行 ACL 判断。
-- 支持飞书、Telegram、QQ、钉钉、微信、Discord、WhatsApp 等消息入口。
-- Scheduler 支持 Cron、固定间隔和一次性任务，提供立即运行、暂停、取消、运行历史和结果投递。
-- 后台任务、Subagent 和渠道回复都沿用同一套 Workspace、Session、owner 与权限上下文。
-
-### Electron Desktop
-
-- Electron 只是 Desktop Shell，复用现有 Web Client，不在 Renderer 中承载数据库、文件系统、凭证、Docker 或 shell/process 权限。
-- Main Process 负责窗口生命周期、外部链接、菜单和受限 IPC；Preload 只暴露白名单 API。
-- 默认提供 macOS arm64 打包配置，并保留 Windows、Linux 目标配置。
-- 同一套 Renderer 可以连接本地 Backend，也可以通过 `MINICLAW_SERVER_URL` 连接远程 Miniclaw 服务。
-
-## 工作原理
-
-```text
-Web Client / Electron Desktop / Message Channels
-                         │ HTTP + WebSocket / Channel Adapters
-                         ▼
-                Miniclaw Backend
-        Auth · API · Queue · Scheduler · ACL
-                         │
-        ┌────────────────┼─────────────────┐
-        ▼                ▼                 ▼
-   Workspace         Capability         Channel
-   Session           Registry            Binding
-   Memory            Skills/MCP          Delivery
-                         │
-                         ▼
-                 Pi Agent Runner
-                   Host / Docker
-                         │
-                         ▼
-                Pi Agent Runtime
-          Tools · Extensions · Subagents
+```mermaid
+flowchart LR
+    I[Incident Fixture] --> A[MiniClaw Pi Agent Runtime]
+    A --> T[ToolCall]
+    T --> P{Risk Policy}
+    P -->|SAFE: read-only| F[Fixture Tool Adapter]
+    F --> E[Evidence]
+    E --> W[Investigation / Incident State]
+    W --> D{Diagnosis or Escalation}
+    D -->|supported by Evidence| G[DIAGNOSED]
+    D -->|conflict or insufficient Evidence| Q[ESCALATED]
+    G -->|optional remediation ToolCall| T
+    P -->|ASK: remediation| H[AWAITING_APPROVAL]
+    H -->|trusted host allows| X[Simulated Action]
+    H -->|human rejects| N[No Action]
+    P -->|BLOCK| N
+    T --> V[AgentEvent]
+    E --> V
+    W --> V
+    H --> V
+    X --> V
+    V --> J[JSONL Trace]
+    J --> R[Read-only Replay]
 ```
 
-核心边界保持清晰：Backend 负责认证、持久化、队列、调度、渠道和授权；Pi Runner 负责 Agent 执行；Workspace 决定文件与运行边界；Electron Renderer 只负责界面和受限的桌面桥接。
+调查与处置是两个步骤：取证工具先经过 `SAFE` 检查；诊断或升级由 Evidence 驱动；如果随后提出处置请求，`ASK` 会停在审批点，`BLOCK` 会拒绝。事件在调查和审批过程中持续产生，Replay 只读取已记录的事件。主要实现位于 [`incident_agent/`](incident_agent/) 与 [`container/agent-runner/src/`](container/agent-runner/src/)。
 
-## 快速开始
+## Evidence Tools
 
-### 环境要求
+四个工具通过 MiniClaw 的 MCP Tool Layer 调用 [`incident_agent/fixtures/`](incident_agent/fixtures/) 中的数据；查询结果被整理为带来源、时间和 ID 的 Evidence。
 
-- Node.js 20 或更高版本
-- npm
-- GNU Make
-- 如果使用容器执行模式，需要 Docker
+| Tool | 返回的模拟证据 |
+| --- | --- |
+| `query_logs` | 故障窗口内的日志 |
+| `query_metrics` | 指标时间序列 |
+| `query_trace` | 请求链路；也可能为空 |
+| `query_git_diff` | 相关配置或代码变更；也可能无相关变更 |
 
-### 启动 Backend 与 Web Client
+数据模型见 [`incident_agent/models.py`](incident_agent/models.py)，Fixture Loader 与工具实现见 [`incident-evidence-tools.ts`](container/agent-runner/src/incident-evidence-tools.ts)。正常或空结果同样是调查结果，不会被强行解释为异常。
 
-```bash
-git clone https://github.com/helsome/miniclaw.git
-cd miniclaw
+## Safety
 
-npm install
-npm --prefix web install
-npm --prefix container/agent-runner install
+策略在工具执行前判定，实现在 [`incident-approval-gate.ts`](container/agent-runner/src/incident-approval-gate.ts)：
 
-# 首次安装或依赖更新后构建 Backend、Web 与 Agent Runner
+| 决策 | 当前工具 | 行为 |
+| --- | --- | --- |
+| `SAFE` | 四个 `query_*` 工具 | 允许只读 Fixture 查询 |
+| `ASK` | `restart_service`、`rollback_config`、`modify_config` | 创建待审批请求；Agent 自己不能批准 |
+| `BLOCK` | `delete_database` 及未知或策略异常的调用 | 拒绝执行 |
+
+**Fail-Closed：**策略读取失败、审批状态不可用或审批记录不一致时，处置不会进入 Executor。`allow` / `reject` 只由可信宿主调用，不注册为 Agent 工具。即使人工批准，当前 Executor 也仅运行 [`incident-remediation-tools.ts`](container/agent-runner/src/incident-remediation-tools.ts) 中的模拟动作，不操作真实服务。状态流转由 [`incident_agent/state_machine.py`](incident_agent/state_machine.py) 约束。
+
+## Trace & Replay
+
+`AgentEvent` 记录状态变化、工具调用与结果、Evidence、诊断、审批和模拟动作。[`incident_agent/events.py`](incident_agent/events.py) 将事件逐行写入 JSONL；[`incident_agent/replay.py`](incident_agent/replay.py) 根据记录重建时间线、最终状态、证据和审批结果。**Replay 不重新调用 LLM、Tool 或 Executor，也不执行处置。**
+
+工具超时会产生失败事件；已有 Evidence 保留，后续查询仍可继续。有关单次真实模型运行的 ToolCalls、Evidence、状态和 JSONL 路径，见 [`docs/demo.md`](docs/demo.md)。
+
+## Evaluation
+
+[`incident_agent/fixtures/`](incident_agent/fixtures/) 包含 `INC-001` 至 `INC-012`，每例都按同一结构提供 Incident、Logs、Metrics、Trace 和 Git Diff：
+
+- `INC-001`～`INC-010`：10 个有可推导根因的案例。
+- `INC-011`：日志与 Trace 对同一调用给出冲突证据，预期升级人工复核。
+- `INC-012`：缺少关键因果证据，预期升级人工复核。
+
+评测答案单独位于 [`evaluation/expected_cases.json`](evaluation/expected_cases.json)，由测试读取；事故 Fixture Tool Adapter 只读取各案例目录。真实 Demo 进一步将 Agent 工具限制在四个查询工具和受审批控制的模拟处置工具。案例设计见 [`docs/incident-case-matrix.md`](docs/incident-case-matrix.md)。
+
+| Core test group | 数量 | 测试文件 |
+| --- | ---: | --- |
+| Schema | 18 | [`test_models.py`](incident_agent/tests/test_models.py) |
+| Workflow | 12 | [`test_workflow_acceptance.py`](incident_agent/tests/test_workflow_acceptance.py) |
+| Approval | 6 | [`test_approval_boundary.py`](incident_agent/tests/test_approval_boundary.py) |
+| Timeout | 3 | [`test_timeout_recovery.py`](incident_agent/tests/test_timeout_recovery.py) |
+| Replay | 3 | [`test_replay_acceptance.py`](incident_agent/tests/test_replay_acceptance.py) |
+| **合计** | **42** | `core` marker 定义于 [`pytest.ini`](pytest.ini) |
+
+Workflow 测试使用基于已返回 Evidence 的脚本化 planner，不依赖外部 LLM API；Fixture → MiniClaw Tool Layer → Evidence → Workflow / State → Diagnosis / Escalation 仍实际运行。这个机制保证 CI 可以重复验证，不代表每次真实模型运行都必然给出相同措辞或判断。
+
+以下是从 GitHub 克隆 `feature/evaluation-suite` 分支的 Windows PowerShell 命令；仓库为私有状态时，克隆账号还需要仓库读取权限。需要 Node.js ≥ 20 和 Python 3.13；其他系统请使用对应的 `python`、虚拟环境路径和 Shell 命令。根目录与 Agent Runner 各有独立的 npm 依赖，缺少后者会使 ToolCall 测试报 `Cannot find package 'typebox'`。
+
+```powershell
+git clone --branch feature/evaluation-suite --single-branch https://github.com/ydflow/incident-response-agent.git
+Set-Location incident-response-agent
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r incident_agent/requirements.txt
+npm ci
+npm --prefix container/agent-runner ci
+.\.venv\Scripts\python.exe -m pytest incident_agent/tests/test_approval_boundary.py -q
+.\.venv\Scripts\python.exe -m pytest -m core -q
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+`python -m pytest -m core -q` 与激活虚拟环境后运行 `pytest -m core -q` 等价。核心验收目标是 `42 passed`；仓库还有不计入核心数字的辅助测试。上面的审批测试应为 `6 passed`：它通过真实 ToolCall 触发 `ASK`，检查未审批和被拒绝时 Executor 都没有执行。
+
+## Demo
+
+真实 LLM Demo **需要读者自己的有效模型凭据**；全新克隆没有 Provider 配置时会以 `live_runner_failed` / `FAILED` 结束，只记录失败事件，不能算调查成功。先在仓库根目录安装 Web 依赖并构建，在另一个终端保持本地服务运行：
+
+```powershell
+npm --prefix web ci
 npm run build:all
-
-# 启动生产式本地服务
 npm start
 ```
 
-默认地址：<http://127.0.0.1:3000>
+浏览器打开 `http://127.0.0.1:3000`，完成管理员初始化，在 **设置 → 模型配置** 中添加并启用有权限调用的 Provider，设为默认并保存自己的 API Key。凭据只在本地配置页面填写，不要写入命令、截图或 Git；如不测试真实模型，可跳过此步骤，仅运行上面的确定性验收。然后在仓库根目录的新终端运行真实 Pi Runtime + LLM 的 `INC-001` 调查；该命令不使用测试 Fake LLM：
 
-开发模式可以直接启动 Backend 和 Vite Web Client：
-
-```bash
-npm run dev:all
+```powershell
+.\.venv\Scripts\python.exe -m incident_agent.demo_live INC-001
 ```
 
-首次进入时完成管理员初始化和 Provider 配置即可。Provider/渠道接入步骤现在可以选择“稍后设置”，跳过后仍可进入工作台，之后在设置中补齐模型和渠道配置。
+命令输出包含 `tool_calls`、`evidence_ids`、`final_status` 和 `jsonl_file`。每次运行的 JSONL 在 `data/incident-e2e/INC-001-<运行 ID>/INC-001.jsonl`，同目录的 `run.json` 保存完整结果。Windows PowerShell 可查看最近一次 `INC-001` 的 Trace，并从**同一文件**回放：
 
-Agent 容器镜像默认使用 `helsome/miniclaw-agent:latest`，可以通过 `MINICLAW_CONTAINER_IMAGE` 或 `CONTAINER_IMAGE` 覆盖。
-
-### 启动 Electron Desktop
-
-先启动 Backend 与 Vite：
-
-```bash
-npm run dev:all
+```powershell
+$trace = Get-ChildItem data/incident-e2e -Filter INC-001.jsonl -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+Get-Content $trace.FullName
+.\.venv\Scripts\python.exe -c "from pathlib import Path; from incident_agent.replay import load_events,reconstruct_runs,render_replay; p=Path(r'$($trace.DirectoryName)'); print(render_replay('INC-001',reconstruct_runs(load_events('INC-001',p))))"
 ```
 
-再在另一个终端启动桌面端：
+`.\.venv\Scripts\python.exe -m incident_agent.replay INC-001` 是另一条现有 CLI，默认读取 `data/incident-runs/INC-001.jsonl`，用于 [`demo_stage4.py`](incident_agent/demo_stage4.py) 生成的记录；它不会自动查找上面的 `incident-e2e` 独立运行目录。三个真实模型案例的已记录结果见 [`docs/demo.md`](docs/demo.md)。
 
-```bash
-MINICLAW_RENDERER_URL=http://127.0.0.1:5173 npm run desktop:dev
-```
+## Project Boundary
 
-如果直接使用 Backend 提供的构建后页面，可以省略 `MINICLAW_RENDERER_URL`：
+- 全部故障数据来自本仓库 Fixture；没有连接真实生产 Logs、Metrics、Trace、Git 或告警系统。
+- Remediation 仅为模拟执行；这里的人工审批是可信宿主侧的审批门槛，不表示已接入真实运维审批平台。
+- 12 项 Workflow 测试是确定性评测；真实 LLM Demo 的输出可能变化。
+- 本项目用于演示和评测，**不宣称 production-ready**。通用 MiniClaw 工作区的文件权限取决于上游配置；本项目的 Ground Truth 隔离是针对事故 Fixture Tool Adapter 与受限 Demo 路径。
 
-```bash
-npm run desktop:dev
-```
+## Future Integration
 
-连接远程 Backend 时：
+未来可通过 Adapter 接入 Prometheus、Loki、OpenTelemetry 和真实 Git Provider，替换 Fixture 数据源。这些接入目前**尚未实现**。
 
-```bash
-MINICLAW_SERVER_URL=https://your-miniclaw.example.com npm run desktop:dev
-```
+## Acknowledgement & License
 
-打包命令：
-
-```bash
-# 生成未安装目录，适合本地冒烟验证
-npm run desktop:package:dir
-
-# 生成当前平台的安装包
-npm run desktop:package
-```
-
-打包配置位于 [`electron/electron-builder.yml`](electron/electron-builder.yml)，图标资源位于 [`electron/assets`](electron/assets)。正式发布前请为目标平台配置签名与公证。
-
-## 常用命令
-
-| 命令 | 说明 |
-| --- | --- |
-| `npm run dev:all` | 启动 Backend 与 Vite Web Client |
-| `npm run build:all` | 构建 Backend、Web Client 与 Agent Runner |
-| `npm run typecheck` | 检查 Backend TypeScript |
-| `make typecheck` | 执行 Backend、Web、Agent Runner 的完整类型与文档检查 |
-| `npm test -- --run` | 运行 Vitest 测试 |
-| `npm run desktop:typecheck` | 检查 Electron Main/Preload 类型 |
-| `npm run desktop:build` | 构建 Electron Main/Preload bundle |
-| `npm run desktop:package:dir` | 构建并生成目录形式的桌面应用 |
-| `npm run desktop:package` | 构建并打包桌面应用 |
-| `make backup` | 创建运行时数据备份 |
-| `make restore FILE=...` | 恢复指定备份 |
-| `make status` | 查看 Backend、日志和 Docker 状态 |
-| `make stop` | 停止当前端口上的 Miniclaw 服务 |
-
-## 配置入口
-
-| 环境变量 | 用途 | 默认值 |
-| --- | --- | --- |
-| `MINICLAW_SERVER_URL` | Electron 要连接的 Backend 地址 | `http://127.0.0.1:3000` |
-| `MINICLAW_RENDERER_URL` | Electron 要加载的 Renderer 地址，适合本地 Vite 开发 | 与 Server URL 相同 |
-| `MINICLAW_CONTAINER_IMAGE` | Agent Runner 使用的容器镜像 | `helsome/miniclaw-agent:latest` |
-| `CONTAINER_IMAGE` | 容器镜像的兼容覆盖项 | 同上 |
-| `WEB_PORT` | Makefile 启动 Backend 使用的端口 | `3000` |
-
-不要把 API Key、Session Cookie 或其他凭证写入命令行历史、截图或提交到仓库。远程部署时使用 HTTPS/WSS，并为反向代理、Cookie 和访问控制配置独立的安全边界。
-
-## 执行与安全边界
-
-- Backend 由 Node.js 运行，负责认证、API、WebSocket、队列、调度、渠道连接、Provider、用量和 SQLite 持久化。
-- Docker 只隔离 Agent 执行环境，不承载 Desktop UI，也不替代 Backend 的授权层。
-- Electron BrowserWindow 使用 `contextIsolation`、关闭 `nodeIntegration` 和 sandbox。
-- Renderer 不直接读取文件、数据库或凭据；需要本机能力时只通过受限 Preload IPC 调用。
-- 外部链接由 Main Process 校验协议后打开；Renderer 导航限制在允许的 Backend/Renderer origin 内。
-- Workspace ACL、owner、用户角色、系统权限和 Host 执行策略在服务端共同判定，不能因为拥有某一层权限就自动越过其他边界。
-- Memory、Skills、MCP、Plugins 和 Scheduler 任务都继承用户、Agent、Workspace 与 Session 上下文。
-
-更多权限约束见 [`docs/ACL-MATRIX.md`](docs/ACL-MATRIX.md)，安全问题请参考 [`SECURITY.md`](SECURITY.md)。
-
-## 项目状态
-
-Miniclaw 当前处于持续开发阶段。仓库已经包含：
-
-- Pi Agent Runtime 生产执行路径与 runtime-neutral contract。
-- Web Client 与 Electron Desktop Shell。
-- Agent Profile、Workspace、Session、Memory、Skills、MCP、Plugins 和 Subagents。
-- 多用户认证、ACL、owner 生命周期、调度任务、用量和渠道接入。
-- Host/Docker 双执行边界，以及 macOS arm64 的 Electron 打包配置。
-
-真实模型调用、Docker 执行、渠道连接和远程部署仍然依赖本地凭证、服务配置与运行环境；没有外部 Provider 时，可以先启动 UI、完成本地初始化，并在设置中稍后补齐配置。
-
-## 路线图
-
-### 近期
-
-- 补充 Pi Runtime 的 Web Search/Web Fetch 等能力适配。
-- 完善渠道 onboarding、运行监控和失败恢复提示。
-- 增加更多 Electron 打包、签名和发布验证路径。
-- 持续收敛 Workspace、Memory、Skills 与 Scheduler 的产品文档。
-
-### 长期
-
-- 更完整的跨平台桌面构建。
-- 更丰富的 Agent/Plugin/Provider 扩展模型。
-- 可视化的运行轨迹、证据链与成本分析。
-- 面向贡献者的能力注册、Skill 开发和渠道适配指南。
-
-## 文档
-
-- [`docs/API.md`](docs/API.md) — HTTP API、认证和主要资源接口
-- [`docs/ACL-MATRIX.md`](docs/ACL-MATRIX.md) — 用户、Workspace、Channel、Host 与任务权限矩阵
-- [`docs/workspace-memory-v2.md`](docs/workspace-memory-v2.md) — Workspace Memory 的数据模型、版本与交互边界
-- [`docs/runtime-migration.md`](docs/runtime-migration.md) — 从旧运行时到 Pi Agent Runtime 的迁移记录
-- [`docs/PROMPT-SKILL-RUNTIME-TEST-PLAN.md`](docs/PROMPT-SKILL-RUNTIME-TEST-PLAN.md) — Prompt、Skill、Runtime 与 Agent Builder 验证计划
-- [`docs/miniclaw-migration-cleanup.md`](docs/miniclaw-migration-cleanup.md) — 品牌和运行时命名迁移记录
-- [`SECURITY.md`](SECURITY.md) — 安全问题报告与处理策略
-
-## 参与贡献
-
-欢迎提交 Issue 与 Pull Request。提交前建议运行：
-
-```bash
-make typecheck
-npm test -- --run
-npm run build:all
-npm run desktop:typecheck
-npm run desktop:build
-```
-
-如果改动了 UI、桌面窗口或交互流程，请附上截图或简短的视觉 QA 说明。新增桌面能力优先放在 Main/Preload，并保持 Renderer 不接触 SQLite、filesystem、credentials、Docker 和 shell/process。
-
-## License
-
-Miniclaw 使用 MIT License，详见 [`LICENSE`](LICENSE)。
+本仓库基于 [MiniClaw 上游项目](https://github.com/helsome/miniclaw) 二次开发，沿用其 Pi Agent Runtime、MCP 工具基础和项目结构。原项目版权声明及 MIT 许可证保留在 [`LICENSE`](LICENSE)；本 README 描述的事故调查与评测能力是本仓库的扩展。

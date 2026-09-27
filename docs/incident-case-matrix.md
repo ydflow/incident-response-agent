@@ -4,9 +4,9 @@
 
 ## 使用边界与判定规则
 
-- **Ground Truth 隔离：**下文的“真实根因”仅供测试数据作者和评测程序使用。Stage 2 答案文件置于仓库外的同级 `../evaluation/expected_cases.json`，避免 MiniClaw 管理员会话的项目根目录挂载直接暴露该文件。运行中的 Incident Agent 只能收到 Incident 的服务、告警、时间，以及允许的 Logs / Metrics / Trace / Git Diff 工具结果；不得把本文件、真实根因、预期状态或评测答案放入 Agent 的提示词、工具返回、可读工作目录或检索内容。不得把答案写进 `incident.json`。
+- **Ground Truth 隔离：**下文的“真实根因”仅供测试数据作者和评测程序使用。当前答案文件位于仓库内 `evaluation/expected_cases.json`，由评测测试读取；Incident Fixture Tool Adapter 只读取各案例目录中的五份数据文件，受限真实 Demo 不开放通用文件读取工具。不得把本文件、真实根因、预期状态或评测答案放入 Incident Agent 的提示词或工具返回，也不得把答案写进 `incident.json`。如果通用 MiniClaw 管理员 Agent 获得整个仓库的文件访问权限，这不是文件级隔离保证。
 - **证据设计：**每个案例至少提供一条可观察线索；前 10 个案例尽量由两种独立来源互相印证，并用相同时间窗口或 request ID 对齐。工具的正常结果同样是证据，例如“数据库查询耗时正常”可排除慢查询。Git Diff 只表示可见的代码/配置变更，不自动证明它就是根因。
-- **状态口径：**本矩阵的“预期状态”是**调查阶段结束时**的状态。INC-001～INC-010 应在证据足够时到达 `DIAGNOSED`，这是中间状态，不是已修复；若后续提出高风险动作，仍须进入 `AWAITING_APPROVAL`，只在获批且实际执行成功后才可能 `RESOLVED`。INC-011 和 INC-012 应在无法可靠诊断时从 `INVESTIGATING` 转为 `ESCALATED`。普通证据冲突或不足不应记为 `FAILED`。现有 INC-001 Demo 在诊断后模拟**拒绝回滚**，所以那次完整流程的终态是 `ESCALATED`。
+- **状态口径：**本矩阵的“预期状态”是**调查阶段结束时**的状态。INC-001～INC-010 应在证据足够时到达 `DIAGNOSED`，这是中间状态，不是已修复；若后续提出高风险动作，仍须进入 `AWAITING_APPROVAL`，只在获批且实际执行成功后才可能 `RESOLVED`。INC-011 和 INC-012 应在无法可靠诊断时从 `INVESTIGATING` 转为 `ESCALATED`。普通证据冲突或不足不应记为 `FAILED`。`demo_stage4.py` 曾在 INC-001 诊断后脚本化**拒绝回滚**，所以该演示终态为 `ESCALATED`；[真实 LLM 调查 Demo](demo.md) 没有发起处置，终态为 `DIAGNOSED`。
 - **工具结果口径：**“正常/无相关变更”表示工具成功返回可核对的正常数据；“空”表示确无记录；“缺失/失败”表示关键数据不可用，三者不能混为一谈。Stage 2 Loader 支持空 Trace（INC-012），但仍要求 Logs、Metrics 非空，Git Diff 有有效日期。某案例不需要四个工具都异常，也不要求 Agent 每次固定调用四个工具。
 - **简明指标：**5xx 是服务器错误；p95 是约 95% 请求都不超过的耗时；缓存命中率是从缓存直接拿到结果的比例。数字只用于模拟前后变化，应在后续 Fixture 中保持一致。
 
@@ -173,7 +173,7 @@
 
 ## 后续制作 Fixture 时的验收约束
 
-1. 每个 Case 的 `incident.json` 只含告警事实，不含本文件的 Ground Truth；真实根因保存在 Agent 不可读的评测材料中。
+1. 每个 Case 的 `incident.json` 只含告警事实，不含本文件的 Ground Truth；答案在 `evaluation/expected_cases.json` 中，不由 Incident Fixture Tool Adapter 读取。
 2. Logs、Metrics、Trace 的时间和 request ID 必须互相对得上；INC-011 的冲突是**有意设计并标记在本文件中**的唯一例外，不能把制作错误当作冲突案例。
 3. 每个工具返回值都要标清“正常、空、失败/缺失”中的哪一种；目前仅 Trace 支持真正空数组，不要把其他来源的空数组宣称为可运行。
 4. 前 10 个案例的评测重点是有证据支撑的根因类型和引用，不是强制逐字复述 Ground Truth；INC-011/012 的评测重点是避免无根据的确定性诊断与未审批处置。

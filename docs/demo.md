@@ -44,3 +44,9 @@ py -3.13 -m incident_agent.demo_live INC-012
 ## 结果核对与边界
 
 三份 JSONL 分别有 16、15、15 行，逐行验证为 `AgentEvent`，ID 与本次内存事件顺序一致。三次模型决定均引用已收集的 Evidence ID。三轮均没有发生高风险处置请求，因此本次 E2E **只证实模型没有越过审批边界，没有实测“模型主动请求处置后被 Gate 拦截”的分支**。该分支由现有 Approval 自动化测试覆盖；这里没有为展示审批效果而伪造一笔模型 ToolCall。
+
+## Clean Clone 复现边界（2026-09-27）
+
+从 GitHub `feature/evaluation-suite` 分支全新克隆后，使用新建 Python 虚拟环境和独立 npm 缓存安装根目录、Agent Runner 与 Web 依赖；`npm run build:all` 通过，本地服务返回 HTTP 200，Approval 测试为 `6 passed`，核心测试为 `42 passed, 27 deselected`。完整安装步骤见根目录 [README](../README.md)。
+
+新克隆没有模型 Provider 配置（启用数量为 0），所以该环境中的 `INC-001` 真实 LLM 命令返回 `live_runner_failed`、终态 `FAILED`，未发生 ToolCall 或 Evidence 收集。它生成了仅含 `IncidentCreated` 与两条 `StatusChanged` 的 JSONL，Replay 能如实重建这次**失败**；这不算新克隆 E2E 调查通过。上文 INC-001/011/012 的成功调查结果来自 **2026-09-26 已配置 Provider 的运行环境**。复现真实模型调查时，需按 README 在新克隆中配置自己的有效 Provider 凭据，再重新核对 ToolCalls、Evidence、终态与 Trace；不要复制或提交已有环境的 API Key。
