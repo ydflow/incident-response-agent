@@ -185,6 +185,9 @@ test('console routes, real catalog, filters and desktop shell', async ({
   await page.getByLabel('严重程度过滤').selectOption('P1');
   await expect(page.getByText('没有符合条件的故障')).toBeVisible();
   await page.getByRole('button', { name: '清除筛选' }).click();
+  await expect(page.getByLabel('搜索故障', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('严重程度过滤')).toHaveValue('');
+  await expect(page.locator('tbody tr')).toHaveCount(snapshot.incidents.length);
   const status =
     snapshot.incidents.find((incident) => incident.status === 'ESCALATED')
       ?.status ?? 'NOT_RUN';
@@ -193,6 +196,8 @@ test('console routes, real catalog, filters and desktop shell', async ({
     snapshot.incidents.filter((incident) => incident.status === status).length,
   );
   await page.getByRole('button', { name: '清除筛选' }).click();
+  await expect(page.getByLabel('状态过滤')).toHaveValue('');
+  await expect(page.locator('tbody tr')).toHaveCount(snapshot.incidents.length);
   await page.screenshot({
     path: testInfo.outputPath('incidents.png'),
     fullPage: true,
