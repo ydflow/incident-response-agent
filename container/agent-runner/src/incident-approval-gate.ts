@@ -103,6 +103,42 @@ export class IncidentApprovalGate {
   private readonly executor: NonNullable<GateOptions['executor']>;
   private readonly pendingRequests = new Map<string, RemediationRequest>();
 
+  /** Trusted host control plane only. No MCP tool exposes this snapshot. */
+  pendingSnapshot(): Array<{
+    id: string;
+    request: RemediationRequest;
+    requestedAt: string | null;
+    evidence: Array<{
+      id: string;
+      source: string;
+      correlationId: string;
+      preview: string;
+    }>;
+  }> {
+    const events = this.events.snapshot();
+    return [...this.pendingRequests].map(([id, request]) => ({
+      id,
+      request: { ...request },
+      requestedAt:
+        [...events]
+          .reverse()
+          .find(
+            (event) =>
+              event.event_type === 'ApprovalRequested' &&
+              event.payload.approval_id === id,
+          )?.timestamp ?? null,
+      evidence: this.evidence
+        .forIncident(request.incident_id)
+        .slice(0, 20)
+        .map((item) => ({
+          id: item.evidence_id,
+          source: item.source,
+          correlationId: item.correlation_id,
+          preview: item.content.slice(0, 600),
+        })),
+    }));
+  }
+
   constructor(options: GateOptions = {}) {
     this.events = options.events ?? new InMemoryIncidentEvents();
     this.evidence = options.evidence ?? new InMemoryIncidentEvidence();
@@ -342,4 +378,31 @@ export function incidentApprovalGateForScope(
     gatesByScope.set(scope, gate);
   }
   return gate;
+}
+
+/** Used only by the signed host-to-runner approval control channel. */
+export function pendingIncidentApprovalsForGroup(groupFolder: string) {
+  return [...gatesByScope]
+    .filter(([scope]) => scope.startsWith(`${groupFolder}\0`))
+    .flatMap(([, gate]) => gate.pendingSnapshot());
+}
+
+/** Never creates a gate or recovers pending state from JSONL. */
+export async function decideIncidentApprovalForGroup(
+  groupFolder: string,
+  approvalId: string,
+  actor: string,
+  decision: 'allow' | 'reject',
+) {
+  for (const [scope, gate] of gatesByScope) {
+    if (
+      scope.startsWith(`${groupFolder}\0`) &&
+      gate.pendingSnapshot().some((record) => record.id === approvalId)
+    ) {
+      return decision === 'allow'
+        ? gate.allow(approvalId, actor)
+        : gate.reject(approvalId, actor);
+    }
+  }
+  return null;
 }
