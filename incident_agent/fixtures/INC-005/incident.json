@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-005",
+  "service": "report-service",
+  "alert": "CPU exceeded 90% and report request p95 rose",
+  "started_at": "2026-09-26T15:00:00.000Z"
+}

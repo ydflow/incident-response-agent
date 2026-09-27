@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-011",
+  "service": "checkout-service",
+  "alert": "Intermittent checkout HTTP 502 rate exceeded 5%",
+  "started_at": "2026-09-26T21:00:00.000Z"
+}

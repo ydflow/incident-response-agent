@@ -1,0 +1,19 @@
+{
+  "service": "search-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T18:59:40.000Z",
+      "level": "WARN",
+      "request_id": "req-009-early",
+      "component": "database",
+      "message": "slow query SELECT orders by customer_id; execution exceeded 1500 ms"
+    },
+    {
+      "timestamp": "2026-09-26T19:00:14.000Z",
+      "level": "WARN",
+      "request_id": "req-009-fail",
+      "component": "http",
+      "message": "GET /orders/search completed slowly after database query"
+    }
+  ]
+}

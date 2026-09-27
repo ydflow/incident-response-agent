@@ -1,0 +1,51 @@
+{
+  "service": "order-service",
+  "traces": [
+    {
+      "trace_id": "trace-004-healthy",
+      "request_id": "req-004-ok",
+      "spans": [
+        {
+          "span_id": "validate_coupon--202",
+          "name": "validate_coupon",
+          "started_at": "2026-09-26T13:56:30.060Z",
+          "ended_at": "2026-09-26T13:56:30.080Z",
+          "duration_ms": 20,
+          "status": "OK"
+        },
+        {
+          "span_id": "POST -orders--203",
+          "name": "POST /orders",
+          "started_at": "2026-09-26T13:56:30.040Z",
+          "ended_at": "2026-09-26T13:56:30.100Z",
+          "duration_ms": 60,
+          "status": "OK",
+          "http_status": 200
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-004-observed",
+      "request_id": "req-004-fail",
+      "spans": [
+        {
+          "span_id": "validate_coupon-10",
+          "name": "validate_coupon",
+          "started_at": "2026-09-26T14:00:10.000Z",
+          "ended_at": "2026-09-26T14:00:10.050Z",
+          "duration_ms": 50,
+          "status": "ERROR"
+        },
+        {
+          "span_id": "POST -orders-10",
+          "name": "POST /orders",
+          "started_at": "2026-09-26T14:00:10.000Z",
+          "ended_at": "2026-09-26T14:00:10.100Z",
+          "duration_ms": 100,
+          "status": "ERROR",
+          "http_status": 500
+        }
+      ]
+    }
+  ]
+}

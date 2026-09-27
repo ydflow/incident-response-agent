@@ -7,6 +7,8 @@ from pydantic import ValidationError
 
 from incident_agent import Diagnosis, Evidence, Incident
 
+pytestmark = pytest.mark.core
+
 
 UTC_TIME = datetime(2026, 9, 26, 8, 0, tzinfo=timezone.utc)
 CHINA_TIME = datetime(2026, 9, 26, 16, 0, tzinfo=timezone(timedelta(hours=8)))

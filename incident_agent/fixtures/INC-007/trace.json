@@ -1,0 +1,51 @@
+{
+  "service": "notify-service",
+  "traces": [
+    {
+      "trace_id": "trace-007-healthy",
+      "request_id": "req-007-ok",
+      "spans": [
+        {
+          "span_id": "sms-api--202",
+          "name": "sms-api",
+          "started_at": "2026-09-26T16:56:30.060Z",
+          "ended_at": "2026-09-26T16:56:30.080Z",
+          "duration_ms": 20,
+          "status": "OK",
+          "http_status": 202
+        },
+        {
+          "span_id": "send_sms--203",
+          "name": "send_sms",
+          "started_at": "2026-09-26T16:56:30.040Z",
+          "ended_at": "2026-09-26T16:56:30.100Z",
+          "duration_ms": 60,
+          "status": "OK"
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-007-observed",
+      "request_id": "req-007-fail",
+      "spans": [
+        {
+          "span_id": "sms-sandbox-example-invalid-10",
+          "name": "sms.sandbox.example.invalid",
+          "started_at": "2026-09-26T17:00:10.000Z",
+          "ended_at": "2026-09-26T17:00:10.050Z",
+          "duration_ms": 50,
+          "status": "ERROR",
+          "http_status": 401
+        },
+        {
+          "span_id": "send_sms-10",
+          "name": "send_sms",
+          "started_at": "2026-09-26T17:00:10.000Z",
+          "ended_at": "2026-09-26T17:00:10.100Z",
+          "duration_ms": 100,
+          "status": "ERROR"
+        }
+      ]
+    }
+  ]
+}

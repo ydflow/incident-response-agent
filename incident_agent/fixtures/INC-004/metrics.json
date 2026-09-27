@@ -1,0 +1,26 @@
+{
+  "service": "order-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T13:57:00.000Z",
+      "coupon_checkout_5xx_percent": 0,
+      "ordinary_checkout_5xx_percent": 0,
+      "cpu_percent": 24,
+      "memory_mb": 420
+    },
+    {
+      "observed_at": "2026-09-26T13:59:30.000Z",
+      "coupon_checkout_5xx_percent": 4,
+      "ordinary_checkout_5xx_percent": 0,
+      "cpu_percent": 24,
+      "memory_mb": 421
+    },
+    {
+      "observed_at": "2026-09-26T14:01:00.000Z",
+      "coupon_checkout_5xx_percent": 13,
+      "ordinary_checkout_5xx_percent": 0,
+      "cpu_percent": 25,
+      "memory_mb": 422
+    }
+  ]
+}

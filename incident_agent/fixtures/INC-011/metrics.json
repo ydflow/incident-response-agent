@@ -1,0 +1,23 @@
+{
+  "service": "checkout-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T20:57:00.000Z",
+      "cache_error_percent": 0,
+      "shipping_5xx_percent": 0,
+      "checkout_502_percent": 0
+    },
+    {
+      "observed_at": "2026-09-26T20:59:30.000Z",
+      "cache_error_percent": 7,
+      "shipping_5xx_percent": 9,
+      "checkout_502_percent": 3
+    },
+    {
+      "observed_at": "2026-09-26T21:01:00.000Z",
+      "cache_error_percent": 11,
+      "shipping_5xx_percent": 13,
+      "checkout_502_percent": 8
+    }
+  ]
+}

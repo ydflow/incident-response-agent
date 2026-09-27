@@ -1,0 +1,67 @@
+{
+  "service": "search-service",
+  "traces": [
+    {
+      "trace_id": "trace-009-healthy",
+      "request_id": "req-009-ok",
+      "spans": [
+        {
+          "span_id": "db-acquire_connection--204",
+          "name": "db.acquire_connection",
+          "started_at": "2026-09-26T18:56:30.020Z",
+          "ended_at": "2026-09-26T18:56:30.040Z",
+          "duration_ms": 20,
+          "status": "OK"
+        },
+        {
+          "span_id": "db-search_orders--203",
+          "name": "db.search_orders",
+          "started_at": "2026-09-26T18:56:30.040Z",
+          "ended_at": "2026-09-26T18:56:30.060Z",
+          "duration_ms": 20,
+          "status": "OK"
+        },
+        {
+          "span_id": "GET -orders-search--205",
+          "name": "GET /orders/search",
+          "started_at": "2026-09-26T18:56:30.000Z",
+          "ended_at": "2026-09-26T18:56:30.080Z",
+          "duration_ms": 80,
+          "status": "OK",
+          "http_status": 200
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-009-observed",
+      "request_id": "req-009-fail",
+      "spans": [
+        {
+          "span_id": "db-acquire_connection-10",
+          "name": "db.acquire_connection",
+          "started_at": "2026-09-26T19:00:10.000Z",
+          "ended_at": "2026-09-26T19:00:10.600Z",
+          "duration_ms": 600,
+          "status": "OK"
+        },
+        {
+          "span_id": "db-search_orders-11",
+          "name": "db.search_orders",
+          "started_at": "2026-09-26T19:00:10.600Z",
+          "ended_at": "2026-09-26T19:00:11.800Z",
+          "duration_ms": 1200,
+          "status": "OK"
+        },
+        {
+          "span_id": "GET -orders-search-10",
+          "name": "GET /orders/search",
+          "started_at": "2026-09-26T19:00:10.000Z",
+          "ended_at": "2026-09-26T19:00:12.400Z",
+          "duration_ms": 2400,
+          "status": "OK",
+          "http_status": 200
+        }
+      ]
+    }
+  ]
+}

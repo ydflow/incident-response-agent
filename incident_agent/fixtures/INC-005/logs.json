@@ -1,0 +1,19 @@
+{
+  "service": "report-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T14:59:30.000Z",
+      "level": "ERROR",
+      "request_id": "req-005-early",
+      "component": "scheduler",
+      "message": "statistics job started while the previous run was still active"
+    },
+    {
+      "timestamp": "2026-09-26T15:00:13.000Z",
+      "level": "ERROR",
+      "request_id": "req-005-fail",
+      "component": "http",
+      "message": "GET /reports timed out while statistics jobs overlapped"
+    }
+  ]
+}

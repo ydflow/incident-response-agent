@@ -1,0 +1,11 @@
+Date: Sat, 26 Sep 2026 18:58:00 +0000
+Subject: synthetic service change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/migrations/20260926_orders.sql b/migrations/20260926_orders.sql
+--- a/migrations/20260926_orders.sql
++++ b/migrations/20260926_orders.sql
+@@ -1 +1 @@
+-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
++DROP INDEX idx_orders_customer_id;

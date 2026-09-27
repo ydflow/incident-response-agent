@@ -1,0 +1,19 @@
+{
+  "service": "notify-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T16:59:40.000Z",
+      "level": "ERROR",
+      "request_id": "req-007-early",
+      "component": "sms-client",
+      "message": "SMS API at sms.sandbox.example.invalid returned HTTP 401 for production environment"
+    },
+    {
+      "timestamp": "2026-09-26T17:00:12.000Z",
+      "level": "ERROR",
+      "request_id": "req-007-fail",
+      "component": "notify",
+      "message": "SMS send failed after HTTP 401 response"
+    }
+  ]
+}

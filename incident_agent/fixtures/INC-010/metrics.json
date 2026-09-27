@@ -1,0 +1,26 @@
+{
+  "service": "profile-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T19:57:00.000Z",
+      "dns_lookup_p95_ms": 22,
+      "avatar_connected_response_p95_ms": 42,
+      "avatar_5xx_percent": 0,
+      "request_p95_ms": 95
+    },
+    {
+      "observed_at": "2026-09-26T19:59:30.000Z",
+      "dns_lookup_p95_ms": 1150,
+      "avatar_connected_response_p95_ms": 43,
+      "avatar_5xx_percent": 0,
+      "request_p95_ms": 1250
+    },
+    {
+      "observed_at": "2026-09-26T20:01:00.000Z",
+      "dns_lookup_p95_ms": 1800,
+      "avatar_connected_response_p95_ms": 41,
+      "avatar_5xx_percent": 0,
+      "request_p95_ms": 1900
+    }
+  ]
+}

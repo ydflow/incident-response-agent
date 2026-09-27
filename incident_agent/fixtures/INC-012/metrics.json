@@ -1,0 +1,26 @@
+{
+  "service": "email-worker",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T21:57:00.000Z",
+      "pending_jobs": 20,
+      "successful_jobs_1m": 100,
+      "cpu_percent": 18,
+      "memory_mb": 300
+    },
+    {
+      "observed_at": "2026-09-26T21:59:30.000Z",
+      "pending_jobs": 170,
+      "successful_jobs_1m": 22,
+      "cpu_percent": 19,
+      "memory_mb": 302
+    },
+    {
+      "observed_at": "2026-09-26T22:01:00.000Z",
+      "pending_jobs": 420,
+      "successful_jobs_1m": 2,
+      "cpu_percent": 18,
+      "memory_mb": 303
+    }
+  ]
+}

@@ -12,6 +12,9 @@ from incident_agent.replay import load_events, reconstruct_runs, render_replay
 from incident_agent.state_machine import IncidentLifecycle, IncidentStatus
 
 
+pytestmark = pytest.mark.core
+
+
 TRACE = Path(__file__).with_name("fixtures") / "INC-001.jsonl"
 
 

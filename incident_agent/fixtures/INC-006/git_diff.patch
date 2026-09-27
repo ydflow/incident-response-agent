@@ -1,0 +1,11 @@
+Date: Sat, 26 Sep 2026 15:58:00 +0000
+Subject: synthetic service change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/app/image.py b/app/image.py
+--- a/app/image.py
++++ b/app/image.py
+@@ -1 +1 @@
+-return resize(image)
++processed_buffers.append(resize(image))

@@ -1,0 +1,6 @@
+{
+  "incident_id": "INC-007",
+  "service": "notify-service",
+  "alert": "Production SMS send failure rate exceeded 5%",
+  "started_at": "2026-09-26T17:00:00.000Z"
+}

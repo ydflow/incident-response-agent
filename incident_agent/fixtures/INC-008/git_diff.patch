@@ -1,0 +1,11 @@
+Date: Sat, 26 Sep 2026 17:58:00 +0000
+Subject: synthetic service change
+
+Synthetic fixture data; this is not a commit in the MiniClaw repository.
+
+diff --git a/config/catalog-service.yaml b/config/catalog-service.yaml
+--- a/config/catalog-service.yaml
++++ b/config/catalog-service.yaml
+@@ -1 +1 @@
+-ttl_seconds: 300
++ttl_seconds: 1

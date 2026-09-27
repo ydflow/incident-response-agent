@@ -1,0 +1,23 @@
+{
+  "service": "notify-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T16:57:00.000Z",
+      "sms_failure_percent": 0,
+      "sms_connect_p95_ms": 48,
+      "cpu_percent": 20
+    },
+    {
+      "observed_at": "2026-09-26T16:59:30.000Z",
+      "sms_failure_percent": 4,
+      "sms_connect_p95_ms": 49,
+      "cpu_percent": 20
+    },
+    {
+      "observed_at": "2026-09-26T17:01:00.000Z",
+      "sms_failure_percent": 18,
+      "sms_connect_p95_ms": 47,
+      "cpu_percent": 21
+    }
+  ]
+}

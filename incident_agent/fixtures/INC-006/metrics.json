@@ -1,0 +1,26 @@
+{
+  "service": "image-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T15:57:00.000Z",
+      "memory_mb": 410,
+      "images_processed_total": 100,
+      "cpu_percent": 35,
+      "image_failure_percent": 0
+    },
+    {
+      "observed_at": "2026-09-26T15:59:30.000Z",
+      "memory_mb": 1250,
+      "images_processed_total": 600,
+      "cpu_percent": 36,
+      "image_failure_percent": 2
+    },
+    {
+      "observed_at": "2026-09-26T16:01:00.000Z",
+      "memory_mb": 1880,
+      "images_processed_total": 900,
+      "cpu_percent": 36,
+      "image_failure_percent": 14
+    }
+  ]
+}

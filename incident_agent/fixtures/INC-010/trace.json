@@ -1,0 +1,60 @@
+{
+  "service": "profile-service",
+  "traces": [
+    {
+      "trace_id": "trace-010-healthy",
+      "request_id": "req-010-ok",
+      "spans": [
+        {
+          "span_id": "dns-lookup avatar-api--204",
+          "name": "dns.lookup avatar-api",
+          "started_at": "2026-09-26T19:56:30.020Z",
+          "ended_at": "2026-09-26T19:56:30.040Z",
+          "duration_ms": 20,
+          "status": "OK"
+        },
+        {
+          "span_id": "avatar-api--203",
+          "name": "avatar-api",
+          "started_at": "2026-09-26T19:56:30.040Z",
+          "ended_at": "2026-09-26T19:56:30.060Z",
+          "duration_ms": 20,
+          "status": "OK",
+          "http_status": 200
+        },
+        {
+          "span_id": "GET -profile--205",
+          "name": "GET /profile",
+          "started_at": "2026-09-26T19:56:30.000Z",
+          "ended_at": "2026-09-26T19:56:30.080Z",
+          "duration_ms": 80,
+          "status": "OK",
+          "http_status": 200
+        }
+      ]
+    },
+    {
+      "trace_id": "trace-010-observed",
+      "request_id": "req-010-fail",
+      "spans": [
+        {
+          "span_id": "dns-lookup avatar-api-10",
+          "name": "dns.lookup avatar-api",
+          "started_at": "2026-09-26T20:00:10.000Z",
+          "ended_at": "2026-09-26T20:00:11.200Z",
+          "duration_ms": 1200,
+          "status": "ERROR"
+        },
+        {
+          "span_id": "GET -profile-10",
+          "name": "GET /profile",
+          "started_at": "2026-09-26T20:00:10.000Z",
+          "ended_at": "2026-09-26T20:00:11.800Z",
+          "duration_ms": 1800,
+          "status": "ERROR",
+          "http_status": 504
+        }
+      ]
+    }
+  ]
+}

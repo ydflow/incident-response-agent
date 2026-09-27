@@ -1,0 +1,26 @@
+{
+  "service": "checkout-service",
+  "samples": [
+    {
+      "observed_at": "2026-09-26T12:57:00.000Z",
+      "shipping_5xx_percent": 0,
+      "checkout_502_percent": 0,
+      "cpu_percent": 25,
+      "db_query_p95_ms": 31
+    },
+    {
+      "observed_at": "2026-09-26T12:59:30.000Z",
+      "shipping_5xx_percent": 15,
+      "checkout_502_percent": 4,
+      "cpu_percent": 26,
+      "db_query_p95_ms": 31
+    },
+    {
+      "observed_at": "2026-09-26T13:01:00.000Z",
+      "shipping_5xx_percent": 25,
+      "checkout_502_percent": 10,
+      "cpu_percent": 27,
+      "db_query_p95_ms": 32
+    }
+  ]
+}

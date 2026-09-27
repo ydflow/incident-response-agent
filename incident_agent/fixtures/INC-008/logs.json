@@ -1,0 +1,19 @@
+{
+  "service": "catalog-service",
+  "entries": [
+    {
+      "timestamp": "2026-09-26T17:59:40.000Z",
+      "level": "WARN",
+      "request_id": "req-008-early",
+      "component": "cache",
+      "message": "cache miss for product-list:all; Redis connection OK"
+    },
+    {
+      "timestamp": "2026-09-26T18:00:12.000Z",
+      "level": "WARN",
+      "request_id": "req-008-fail",
+      "component": "cache",
+      "message": "repeated cache miss for product-list:all followed by database read"
+    }
+  ]
+}

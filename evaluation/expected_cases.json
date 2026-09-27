@@ -1,0 +1,52 @@
+{
+  "INC-001": {
+    "expected_root_cause": "payment-service database pool max_connections was reduced from 50 to 5; connection acquisition timed out under normal load",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-002": {
+    "expected_root_cause": "Redis connection was refused while session-service read login sessions",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-003": {
+    "expected_root_cause": "shipping-api returned HTTP 503 and checkout-service surfaced HTTP 502",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-004": {
+    "expected_root_cause": "order-service v2 directly read an optional coupon field and failed on legacy client requests without it",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-005": {
+    "expected_root_cause": "report statistics interval changed from 60 seconds to 1 second, causing overlapping jobs and CPU saturation",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-006": {
+    "expected_root_cause": "image-service retained processed image buffers in a long-lived list, causing memory growth",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-007": {
+    "expected_root_cause": "production notify-service pointed to the SMS sandbox endpoint, which rejected production credentials",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-008": {
+    "expected_root_cause": "catalog cache TTL changed from 300 seconds to 1 second, reducing hits and increasing database reads",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-009": {
+    "expected_root_cause": "a database migration removed the orders customer_id search index, slowing SQL execution",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-010": {
+    "expected_root_cause": "DNS resolution for avatar-api became slow; the dependency remained fast after connection",
+    "expected_status": "DIAGNOSED"
+  },
+  "INC-011": {
+    "expected_root_cause": "shipping-api returned 503; a cache timeout log was incorrectly associated with the same request ID",
+    "expected_status": "ESCALATED",
+    "evaluation_note": "Visible log and trace disagree for req-conflict-11. The agent must flag the conflict instead of using this hidden explanation."
+  },
+  "INC-012": {
+    "expected_root_cause": "the email worker host ran out of disk space and could not write temporary job files",
+    "expected_status": "ESCALATED",
+    "evaluation_note": "No exposed tool provides disk capacity or a file-write error. The agent must request more evidence rather than guessing this hidden cause."
+  }
+}
