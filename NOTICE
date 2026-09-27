@@ -1,0 +1,15 @@
+故障智巡 / Incident Response Agent
+Open Source Attribution
+
+This repository includes code derived from MiniClaw:
+https://github.com/helsome/miniclaw
+
+The imported foundation includes Agent Runtime integration, general tool calling,
+provider and session handling, and the host/web workspace infrastructure.
+The incident domain, evidence investigation, incident-specific safety policy and
+human approval, AgentEvent trace, replay, and evaluation are this repository's
+incident-response extensions. See docs/project-ownership.md for file-level
+ownership and implementation boundaries.
+
+The original MiniClaw copyright notice and MIT license text are retained in
+LICENSE. This notice supplements them; it does not replace the license.
