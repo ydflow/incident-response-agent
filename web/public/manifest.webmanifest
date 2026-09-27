@@ -1,31 +1,25 @@
 {
-  "name": "Miniclaw",
-  "short_name": "Miniclaw",
-  "description": "Personal Claude Assistant",
-  "start_url": "./chat",
+  "name": "故障智巡",
+  "short_name": "故障智巡",
+  "description": "AI 线上服务故障排查与处置平台",
+  "start_url": "./overview",
   "display": "standalone",
   "display_override": ["standalone"],
-  "background_color": "#FAF9F5",
-  "theme_color": "#0d9488",
+  "background_color": "#0d131c",
+  "theme_color": "#0d131c",
   "lang": "zh-CN",
   "scope": "./",
   "id": "./",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/incident-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/incident-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }

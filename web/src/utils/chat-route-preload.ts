@@ -16,5 +16,5 @@ export function shouldPreloadChatRoute(
     }
   }
 
-  return route === '/' || route === '/chat' || route.startsWith('/chat/');
+  return route === '/chat' || route.startsWith('/chat/');
 }

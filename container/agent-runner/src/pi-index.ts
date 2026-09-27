@@ -37,10 +37,10 @@ import { resolveAgentRuntimeKind } from './runtime-config.js';
 import { adaptClaudeMcpToolsToPi } from './runtime/pi/pi-tools.js';
 import { PiRuntimeAdapter } from './runtime/pi/pi-runtime.js';
 import { runPiQueryAttempt } from './runtime/pi/pi-runner.js';
+import { startIncidentApprovalControl } from './incident-approval-control.js';
 
 const WORKSPACE_GROUP =
-  process.env.MINICLAW_WORKSPACE_GROUP ||
-  '/workspace/group';
+  process.env.MINICLAW_WORKSPACE_GROUP || '/workspace/group';
 const WORKSPACE_IPC =
   process.env.MINICLAW_WORKSPACE_IPC ||
   process.env.MINICLAW_WORKSPACE_IPC ||
@@ -470,6 +470,12 @@ async function main(): Promise<void> {
     workspaceIpc: WORKSPACE_IPC,
     workspaceGroup: WORKSPACE_GROUP,
   };
+  const stopApprovalControl = startIncidentApprovalControl({
+    workspaceIpc: WORKSPACE_IPC,
+    groupFolder: input.groupFolder,
+    runnerInstanceId: input.workspaceMemoryRunnerInstanceId,
+    signingSecret: input.workspaceMemoryMutationSigningSecret,
+  });
   let prompt = input.prompt;
   let images = input.images;
   let initialMessages = drainInput();
@@ -528,6 +534,8 @@ async function main(): Promise<void> {
       newSessionId: latestSessionId,
     });
     process.exitCode = 1;
+  } finally {
+    stopApprovalControl();
   }
 }
 

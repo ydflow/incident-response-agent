@@ -30,18 +30,19 @@ describe('product terminology', () => {
     );
   });
 
-  test('keeps Pi runtime and subagent terminology technically explicit', () => {
+  test('keeps runtime attribution in documentation and technical terms explicit', () => {
     const login = read('web/src/pages/LoginPage.tsx');
     const streaming = read('web/src/components/chat/StreamingDisplay.tsx');
     const workflow = read('web/src/components/chat/WorkflowRunCard.tsx');
     const tools = read('web/src/components/chat/ToolActivityCard.tsx');
     const readme = read('README.md');
 
-    expect(login).toContain('Powered by Pi Agent Runtime');
+    expect(login).toContain('管理员登录 · 故障智巡');
     expect(streaming).toContain('子 Agent:');
     expect(workflow).toContain('个 Agent');
     expect(tools).toContain("case 'Agent':");
-    expect(readme).toContain('Pi Agent Runtime');
-    expect(readme).toContain('Agent → Workspace → Runtime Session');
+    expect(readme).toContain('Pi Runtime');
+    expect(readme).toContain('MiniClaw');
+    expect(readme).toContain('Agent Runtime');
   });
 });

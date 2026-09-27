@@ -53,6 +53,10 @@ import {
 } from './workspace-memory-capability.js';
 import { releaseMiniclawOwnerIntroductionLease } from './owner-profile-store.js';
 import {
+  registerIncidentApprovalRunner,
+  revokeIncidentApprovalRunner,
+} from './incident-approval-bridge.js';
+import {
   deleteSession,
   getUserById,
   getSessionProviderId,
@@ -1341,7 +1345,14 @@ export function buildVolumeMounts(
       : path.join(DATA_DIR, 'ipc', group.folder);
   mkdirForContainer(groupIpcDir);
   // All agents (main + sub/conversation) get agents/ subdir for spawn/message IPC
-  for (const sub of ['messages', 'tasks', 'input', 'agents'] as const) {
+  for (const sub of [
+    'messages',
+    'tasks',
+    'input',
+    'agents',
+    'incident-approval-commands',
+    'incident-approval-results',
+  ] as const) {
     const subDir = path.join(groupIpcDir, sub);
     fs.mkdirSync(subDir, { recursive: true });
     try {
@@ -1788,6 +1799,14 @@ export async function runContainerAgent(
       });
 
       onProcess(container, containerName, selectedProfileId);
+      registerIncidentApprovalRunner({
+        instanceId: workspaceMemoryRunnerInstanceId,
+        secret: workspaceMemoryMutationSigningSecret,
+        groupFolder: group.folder,
+        agentId: input.agentId,
+        taskRunId: input.taskRunId,
+        process: container,
+      });
 
       const stdoutState = createStdoutParserState();
       const stderrState = createStderrState();
@@ -2170,6 +2189,7 @@ export async function runContainerAgent(
 
     return result;
   } finally {
+    revokeIncidentApprovalRunner(workspaceMemoryRunnerInstanceId);
     revokeWorkspaceMemoryWriteCapability(
       workspaceMemoryCapabilityScope,
       workspaceMemoryRunnerInstanceId,
@@ -2418,6 +2438,14 @@ export async function runHostAgent(
   });
   // All agents (main + sub/conversation) get agents/ subdir for spawn/message IPC
   fs.mkdirSync(path.join(groupIpcDir, 'agents'), {
+    recursive: true,
+    mode: 0o700,
+  });
+  fs.mkdirSync(path.join(groupIpcDir, 'incident-approval-commands'), {
+    recursive: true,
+    mode: 0o700,
+  });
+  fs.mkdirSync(path.join(groupIpcDir, 'incident-approval-results'), {
     recursive: true,
     mode: 0o700,
   });
@@ -2803,6 +2831,14 @@ export async function runHostAgent(
 
       const processId = `host-${group.folder}-${Date.now()}`;
       onProcess(proc, processId, hostSelectedProfileId);
+      registerIncidentApprovalRunner({
+        instanceId: workspaceMemoryRunnerInstanceId,
+        secret: workspaceMemoryMutationSigningSecret,
+        groupFolder: group.folder,
+        agentId: input.agentId,
+        taskRunId: input.taskRunId,
+        process: proc,
+      });
 
       const stdoutState = createStdoutParserState();
       const stderrState = createStderrState();
@@ -3078,6 +3114,7 @@ export async function runHostAgent(
 
     return hostResult;
   } finally {
+    revokeIncidentApprovalRunner(workspaceMemoryRunnerInstanceId);
     revokeWorkspaceMemoryWriteCapability(
       workspaceMemoryCapabilityScope,
       workspaceMemoryRunnerInstanceId,

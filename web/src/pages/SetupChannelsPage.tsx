@@ -43,16 +43,16 @@ export function SetupChannelsPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => navigate('/chat', { replace: true })}
+            onClick={() => navigate('/overview', { replace: true })}
           >
             <SkipForward className="size-4" />
             稍后设置
           </Button>
           <Button
             type="button"
-            onClick={() => navigate('/chat', { replace: true })}
+            onClick={() => navigate('/overview', { replace: true })}
           >
-            完成并进入 Miniclaw
+            完成并进入 故障智巡
             <ArrowRight className="size-4" />
           </Button>
         </footer>

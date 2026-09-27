@@ -1,4 +1,4 @@
-# Day 3：真实 MiniClaw + LLM E2E Demo
+# 故障智巡：真实模型故障调查 Demo
 
 运行日期：2026-09-26。每个 Case 各执行一次真实模型回合；没有使用测试 Fake LLM，也没有重试、补发纠正提示或把 Ground Truth 放进 Prompt。模型为当前 MiniClaw 配置的 `step-3.5-flash/step-5-preview`，通过项目的 `PiRuntimeAdapter`、真实 MCP Tool Layer、Fixture Loader、Evidence Collector、IncidentLifecycle、AgentEvent 与 JSONL Event Store 运行。Agent 的临时工作目录与仓库隔离，只开放四个查询工具和三个受 Approval Gate 管控的模拟处置工具；没有开放文件读取工具。
 
@@ -14,7 +14,7 @@ py -3.13 -m incident_agent.demo_live INC-012
 
 每条命令只调用模型一次。`incident_agent/demo_live.py` 创建并记录 Incident 状态，再由 `scripts/demo-incident-live.ts` 调用真实 Pi Runtime。每次运行独立保存 `run.json` 和 `INC-xxx.jsonl`，位于 Git 忽略的 `data/incident-e2e/` 目录。`run.json` 保存完整模型回答、ToolCalls、Evidence 和事件；下面是本次实际结果的摘要。
 
-## INC-001：支付服务连接池
+## 故障智巡正在调查 INC-001：支付服务连接池
 
 - **ToolCalls：** `query_logs`、`query_metrics`、`query_trace`、`query_git_diff`，各有一次真实 `ToolCalled` / `ToolResult`。Pi 流式回调重复通知了同一个 `query_logs` 起始 ID，但 Event Store 只有一次真实调用；本次 `run.json` 的原始 `tool_calls` 数组保留了那些重复回调。
 - **Evidence：** `INC-001:logs` 记录连接获取超时和 HTTP 500；`INC-001:metrics` 显示连接池使用数触及 5、等待请求增加、获取连接耗时升高，而数据库查询耗时基本正常；`INC-001:trace` 指向 `db.acquire_connection` 超时；`INC-001:git_diff` 显示告警前 `max_connections` 从 50 改为 5。四条都由查询工具从 Fixture 返回并产生 `EvidenceCollected`。

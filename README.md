@@ -1,45 +1,41 @@
-# Incident Response Agent
+# 故障智巡
 
-基于 [MiniClaw](https://github.com/helsome/miniclaw) 构建的**可控线上服务故障调查与处置 Agent**。它从模拟故障数据中调用工具取证，给出有证据引用的诊断；高风险处置须经过人工审批，执行历史可回放。
+AI 线上服务故障排查与处置平台
 
-**快速了解：**4 个只读取证工具 · 12 个模拟故障案例 · 42 项确定性核心测试 · 处置仅为模拟执行。
+Evidence-driven incident investigation and human-controlled remediation agent.
 
-## Problem
+线上服务出现异常后，故障智巡围绕一条可核查、可审批、可回放的处置链工作：
 
-让 LLM 直接阅读告警并给出处置，容易遇到三个问题：缺少可核查的 Logs、Metrics、Trace、Git Diff 证据；模型建议的高风险动作不能直接执行；事后难以还原它调用了什么工具、依据什么证据、状态如何变化。本项目用结构化 Evidence、执行前策略和 AgentEvent 记录这些边界。
+**Incident → Investigation → Evidence → Diagnosis → Risk Policy → Human Approval → Remediation → Trace → Replay**
 
-## Core Workflow
+系统从故障记录发起调查，使用只读工具采集日志、指标、链路和代码变更证据，再生成引用证据的诊断。处置请求须先经过 `SAFE / ASK / BLOCK` 风险策略；`ASK` 等待可信宿主侧的人工审批，`BLOCK` 直接阻止。调查与审批产生 AgentEvent 和 JSONL Trace，Replay 只消费历史事件。当前数据源是模拟 Fixture，处置执行也是模拟操作。
 
-```mermaid
-flowchart LR
-    I[Incident Fixture] --> A[MiniClaw Pi Agent Runtime]
-    A --> T[ToolCall]
-    T --> P{Risk Policy}
-    P -->|SAFE: read-only| F[Fixture Tool Adapter]
-    F --> E[Evidence]
-    E --> W[Investigation / Incident State]
-    W --> D{Diagnosis or Escalation}
-    D -->|supported by Evidence| G[DIAGNOSED]
-    D -->|conflict or insufficient Evidence| Q[ESCALATED]
-    G -->|optional remediation ToolCall| T
-    P -->|ASK: remediation| H[AWAITING_APPROVAL]
-    H -->|trusted host allows| X[Simulated Action]
-    H -->|human rejects| N[No Action]
-    P -->|BLOCK| N
-    T --> V[AgentEvent]
-    E --> V
-    W --> V
-    H --> V
-    X --> V
-    V --> J[JSONL Trace]
-    J --> R[Read-only Replay]
+**当前范围：**4 个只读取证工具 · 12 个模拟故障案例 · 42 项确定性核心测试。
+
+## Architecture
+
+```text
+Incident Response System（故障智巡）
+├─ Incident Domain       Incident 模型与状态机
+├─ Investigation         故障调查流程与取证 ToolCall
+├─ Evidence              Fixture、只读查询与结构化证据
+├─ Diagnosis             证据引用校验、根因分析或升级
+├─ Policy / Approval     SAFE / ASK / BLOCK、人工审批与模拟处置
+├─ Trace / Replay        AgentEvent、JSONL 与只读回放
+├─ Evaluation            12 个案例与确定性核心测试
+└─ Agent Runtime         MiniClaw-derived runtime
+   └─ Pi Runtime、Provider、Session、Context、通用 Tool Calling
 ```
 
-MiniClaw 基座工作台按 `Agent → Workspace → Runtime Session` 组织会话；本项目的故障调查扩展使用其中的 Pi Runtime 和 Tool Layer。调查与处置是两个步骤：取证工具先经过 `SAFE` 检查；诊断或升级由 Evidence 驱动；如果随后提出处置请求，`ASK` 会停在审批点，`BLOCK` 会拒绝。事件在调查和审批过程中持续产生，Replay 只读取已记录的事件。主要实现位于 [`incident_agent/`](incident_agent/) 与 [`container/agent-runner/src/`](container/agent-runner/src/)。
+这张图描述系统责任层次，不表示每一层都是独立服务。底层复用 MiniClaw 的 Agent Runtime、Tool Calling 和宿主基础；本项目主要构建 Incident Domain、Evidence Investigation、Safety Policy、Human Approval、AgentEvent Trace、Replay 与 Evaluation。详细归属及代码位置见 [`docs/project-ownership.md`](docs/project-ownership.md)。
+
+## Investigation Workflow
+
+故障调查从 Incident 进入受限 Agent 会话。取证工具读取 Fixture 后返回带来源、时间和 ID 的 Evidence；诊断引用已收集的 Evidence，证据冲突或不足时升级人工复核。随后提出的处置请求在执行前进入风险策略和 Approval Gate，批准只允许可信宿主发起。主要实现位于 [`incident_agent/`](incident_agent/) 与 [`container/agent-runner/src/`](container/agent-runner/src/)。
 
 ## Evidence Tools
 
-四个工具通过 MiniClaw 的 MCP Tool Layer 调用 [`incident_agent/fixtures/`](incident_agent/fixtures/) 中的数据；查询结果被整理为带来源、时间和 ID 的 Evidence。
+四个只读工具通过现有 MCP Tool Layer 调用 [`incident_agent/fixtures/`](incident_agent/fixtures/) 中的数据；查询结果被整理为带来源、时间和 ID 的 Evidence。
 
 | Tool             | 返回的模拟证据                       |
 | ---------------- | ------------------------------------ |
@@ -87,13 +83,11 @@ MiniClaw 基座工作台按 `Agent → Workspace → Runtime Session` 组织会�
 | Replay          |      3 | [`test_replay_acceptance.py`](incident_agent/tests/test_replay_acceptance.py)     |
 | **合计**        | **42** | `core` marker 定义于 [`pytest.ini`](pytest.ini)                                   |
 
-Workflow 测试使用基于已返回 Evidence 的脚本化 planner，不依赖外部 LLM API；Fixture → MiniClaw Tool Layer → Evidence → Workflow / State → Diagnosis / Escalation 仍实际运行。这个机制保证 CI 可以重复验证，不代表每次真实模型运行都必然给出相同措辞或判断。
+Workflow 测试使用基于已返回 Evidence 的脚本化 planner，不依赖外部 LLM API；Fixture → Tool Layer → Evidence → Workflow / State → Diagnosis / Escalation 仍实际运行。这个机制保证 CI 可以重复验证，不代表每次真实模型运行都必然给出相同措辞或判断。
 
-以下是从 GitHub 克隆 `feature/evaluation-suite` 分支的 Windows PowerShell 命令；仓库为私有状态时，克隆账号还需要仓库读取权限。需要 Node.js ≥ 20 和 Python 3.13；其他系统请使用对应的 `python`、虚拟环境路径和 Shell 命令。根目录与 Agent Runner 各有独立的 npm 依赖，缺少后者会使 ToolCall 测试报 `Cannot find package 'typebox'`。
+以下命令在仓库根目录运行。需要 Node.js ≥ 20 和 Python 3.13；其他系统请使用对应的 `python`、虚拟环境路径和 Shell 命令。根目录与 Agent Runner 各有独立的 npm 依赖，缺少后者会使 ToolCall 测试报 `Cannot find package 'typebox'`。
 
 ```powershell
-git clone --branch feature/evaluation-suite --single-branch https://github.com/ydflow/incident-response-agent.git
-Set-Location incident-response-agent
 py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r incident_agent/requirements.txt
 npm ci
@@ -105,7 +99,7 @@ npm --prefix container/agent-runner ci
 
 `python -m pytest -m core -q` 与激活虚拟环境后运行 `pytest -m core -q` 等价。核心验收目标是 `42 passed`；仓库还有不计入核心数字的辅助测试。上面的审批测试应为 `6 passed`：它通过真实 ToolCall 触发 `ASK`，检查未审批和被拒绝时 Executor 都没有执行。
 
-## Demo
+## Demo：故障智巡正在调查 INC-001
 
 真实 LLM Demo **需要读者自己的有效模型凭据**；全新克隆没有 Provider 配置时会以 `live_runner_failed` / `FAILED` 结束，只记录失败事件，不能算调查成功。先在仓库根目录安装 Web 依赖并构建，在另一个终端保持本地服务运行：
 
@@ -142,6 +136,14 @@ Get-Content $trace.FullName
 
 未来可通过 Adapter 接入 Prometheus、Loki、OpenTelemetry 和真实 Git Provider，替换 Fixture 数据源。这些接入目前**尚未实现**。
 
-## Acknowledgement & License
+## Runtime Notes
 
-本仓库基于 [MiniClaw 上游项目](https://github.com/helsome/miniclaw) 二次开发，沿用其 Pi Agent Runtime、MCP 工具基础和项目结构。原项目版权声明及 MIT 许可证保留在 [`LICENSE`](LICENSE)；本 README 描述的事故调查与评测能力是本仓库的扩展。
+Agent Loop、Provider、Session、Context 和通用 Tool Calling 由导入的 MiniClaw 基线及其 Pi 依赖提供；本项目通过其接入点加入 Incident 取证与审批流程，没有从零实现这些 Runtime 能力。根目录的通用包名、接口名、环境变量及工作区存储键沿用原实现，以保持兼容。能力归属以 [`docs/project-ownership.md`](docs/project-ownership.md) 为准。
+
+## Acknowledgements
+
+感谢 [MiniClaw 上游项目](https://github.com/helsome/miniclaw) 及其贡献者。本仓库复用其 Agent Runtime、通用 Tool Calling、Provider/Session 与宿主基础，并在此基础上构建故障调查与处置系统。
+
+## Open Source Attribution
+
+MiniClaw 代码的原版权声明与 MIT 许可证完整保留在 [`LICENSE`](LICENSE)；补充来源说明见 [`NOTICE`](NOTICE)。本项目新增的 Incident Domain、Evidence Investigation、Safety Policy、Human Approval、AgentEvent Trace、Replay 和 Evaluation 不代表上游 Runtime 由本项目从零实现。

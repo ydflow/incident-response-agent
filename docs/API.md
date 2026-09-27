@@ -31,6 +31,7 @@
 | `/api/mcp-servers`                 | `src/routes/mcp-servers.ts`      | 用户/系统 MCP                 |
 | `/api/plugins`                     | `src/routes/plugins.ts`          | Plugin Catalog 与用户启用状态 |
 | `/api/usage`                       | `src/routes/usage.ts`            | Token 用量                    |
+| `/api/incident-console`            | `src/routes/incident-console.ts` | 故障总览、追踪、评测与审批    |
 | `/api/billing`                     | `src/routes/billing.ts`          | 订阅、余额和计费管理          |
 | `/api/admin`                       | `src/routes/admin.ts`            | 用户、邀请和审计              |
 | `/api/bug-report`                  | `src/routes/bug-report.ts`       | 脱敏问题报告                  |

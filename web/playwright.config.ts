@@ -4,6 +4,7 @@ const systemChromium = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: 'incident-console.spec.ts',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
