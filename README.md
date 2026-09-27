@@ -35,7 +35,7 @@ flowchart LR
     J --> R[Read-only Replay]
 ```
 
-调查与处置是两个步骤：取证工具先经过 `SAFE` 检查；诊断或升级由 Evidence 驱动；如果随后提出处置请求，`ASK` 会停在审批点，`BLOCK` 会拒绝。事件在调查和审批过程中持续产生，Replay 只读取已记录的事件。主要实现位于 [`incident_agent/`](incident_agent/) 与 [`container/agent-runner/src/`](container/agent-runner/src/)。
+MiniClaw 基座工作台按 `Agent → Workspace → Runtime Session` 组织会话；本项目的故障调查扩展使用其中的 Pi Runtime 和 Tool Layer。调查与处置是两个步骤：取证工具先经过 `SAFE` 检查；诊断或升级由 Evidence 驱动；如果随后提出处置请求，`ASK` 会停在审批点，`BLOCK` 会拒绝。事件在调查和审批过程中持续产生，Replay 只读取已记录的事件。主要实现位于 [`incident_agent/`](incident_agent/) 与 [`container/agent-runner/src/`](container/agent-runner/src/)。
 
 ## Evidence Tools
 
