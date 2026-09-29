@@ -1,16 +1,57 @@
-# 故障智巡
+<p align="center"><img src="web/public/icons/incident-mark.svg" alt="故障智巡标志" width="76" /></p>
 
-AI 线上服务故障排查与处置平台
+<h1 align="center">故障智巡</h1>
 
-Evidence-driven incident investigation and human-controlled remediation agent.
+<p align="center"><strong>从故障信号到可核查的处置决策</strong><br />AI 线上服务故障排查与处置平台 · Incident Response Agent</p>
 
-线上服务出现异常后，故障智巡围绕一条可核查、可审批、可回放的处置链工作：
+<p align="center">
+  <a href="#产品界面">产品界面</a> ·
+  <a href="#architecture">系统架构</a> ·
+  <a href="#evaluation">评测与验证</a> ·
+  <a href="#demo故障智巡正在调查-inc-001">运行 Demo</a> ·
+  <a href="docs/project-ownership.md">能力归属</a>
+</p>
 
-**Incident → Investigation → Evidence → Diagnosis → Risk Policy → Human Approval → Remediation → Trace → Replay**
+故障智巡以 **Incident 为中心**组织调查：通过只读工具采集日志、指标、链路与变更，形成可追溯的 Evidence；诊断必须引用已收集的证据。证据冲突或不足时，流程升级人工复核。涉及处置的 ToolCall 先经过 `SAFE / ASK / BLOCK` 策略；`ASK` 由可信宿主审批，`BLOCK` 直接阻止。关键状态与决策写入 `AgentEvent` / JSONL，可按历史事件只读回放。
 
-系统从故障记录发起调查，使用只读工具采集日志、指标、链路和代码变更证据，再生成引用证据的诊断。处置请求须先经过 `SAFE / ASK / BLOCK` 风险策略；`ASK` 等待可信宿主侧的人工审批，`BLOCK` 直接阻止。调查与审批产生 AgentEvent 和 JSONL Trace，Replay 只消费历史事件。当前数据源是模拟 Fixture，处置执行也是模拟操作。
+> **项目阶段：可运行的模拟故障演示与确定性验收。** 目前使用仓库内 Fixture，处置 Executor 只执行模拟动作；尚未接入生产监控或真实服务操作。
 
-**当前范围：**4 个只读取证工具 · 12 个模拟故障案例 · 42 项确定性核心测试。
+| 只读取证 | 模拟案例 |    核心验收     |            处置边界             |
+| :------: | :------: | :-------------: | :-----------------------------: |
+| 4 个工具 |  12 例   | 42 项确定性测试 | `SAFE / ASK / BLOCK` + 人工审批 |
+
+## 产品界面
+
+以下截图来自仓库的 **1440 × 900 桌面端浏览器验收**。页面读取模拟案例目录和本地运行记录；图中的状态、事件与评测结果是该验收环境的快照，不代表实时生产服务。当前为统一的故障控制台，包含使用者视角的总览和管理审计视角的审批、追踪、评测页面。
+
+### 运行总览 · 从告警进入调查
+
+故障列表、状态统计、Agent 事件动态和单个 Incident 的证据详情在同一屏展开。
+
+![故障智巡运行总览，展示模拟故障列表、状态统计与证据详情](docs/screenshots/incident-overview.png)
+
+<details>
+<summary><strong>展开查看：审批中心、执行追踪与评测中心</strong></summary>
+
+### 审批中心 · 高风险动作交给人
+
+只展示当前 Gate 中有效的 `ASK` 请求；历史审批只读呈现，`BLOCK` 不进入待审批队列。截图中无待审批项，历史记录来自本地事件。
+
+![故障智巡审批中心，展示待审批队列和历史审批记录](docs/screenshots/incident-approvals.png)
+
+### 执行追踪 · 用事件还原过程
+
+按运行记录查看 `AgentEvent` 时间线，并逐步回放历史事件；Replay 不会再次调用模型、工具或处置执行器。
+
+![故障智巡执行追踪，展示事件时间线和只读回放控件](docs/screenshots/incident-traces.png)
+
+### 评测中心 · 结果和边界一起呈现
+
+展示 12 个模拟案例、核心测试分类及本地 JUnit 产物。截图中的 `42 / 42` 是当次验收环境的结果，不是线上故障处置成功率。
+
+![故障智巡评测中心，展示模拟案例和核心测试分类](docs/screenshots/incident-evaluations.png)
+
+</details>
 
 ## Architecture
 
