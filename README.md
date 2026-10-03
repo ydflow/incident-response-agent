@@ -252,7 +252,7 @@ Agent Loop、Provider、Session、Context 和通用 Tool Calling 由导入的 Mi
 
 ## Acknowledgements
 
-感谢 [MiniClaw 上游项目](https://github.com/helsome/miniclaw) 及其贡献者。本仓库复用其 Agent Runtime、通用 Tool Calling、Provider/Session 与宿主基础，并在此基础上构建故障调查与处置系统。
+感谢 [MiniClaw 上游项目](https://github.com/helsome/miniclaw) 及其贡献者。
 
 ## Open Source Attribution
 
