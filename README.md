@@ -14,7 +14,7 @@
 
 故障智巡以 **Incident 为中心**组织调查：通过只读工具采集日志、指标、链路与变更，形成可追溯的 Evidence；诊断必须引用已收集的证据。证据冲突或不足时，流程升级人工复核。涉及处置的 ToolCall 先经过 `SAFE / ASK / BLOCK` 策略；`ASK` 由可信宿主审批，`BLOCK` 直接阻止。关键状态与决策写入 `AgentEvent` / JSONL，可按历史事件只读回放。
 
-> **v0.3.0 发布准备：可复现的本地故障调查链路。** 新增认证告警入口、聚合、持久化任务、运行中演示服务日志/指标、Markdown/BM25 手册和现场 Console。原 12 个 Fixture 与模拟审批保留。当前真实模型尝试超时并升级人工；生产数据源、实际 Alertmanager 和生产处置均未验收。版本尚未发布，详见 [Release 草稿](docs/releases/v0.3.0.md)。
+> **v0.3.0 本地受控演示预览：可复现的故障调查链路。** 新增认证告警入口、聚合、持久化任务、运行中演示服务日志/指标、Markdown/BM25 手册和现场 Console。原 12 个 Fixture 与模拟审批保留。当前真实模型尝试超时并升级人工；生产数据源、实际 Alertmanager 和生产处置均未验收。发布定位为 GitHub prerelease，详见 [版本说明](docs/releases/v0.3.0.md)和[发布进度](docs/v0.3.0-progress.md)；当前发布状态以 [GitHub Release](https://github.com/ydflow/incident-response-agent/releases/tag/v0.3.0) 为准。
 
 |                                   只读取证                                   | 模拟案例  |                 核心验收                 |              处置边界               |
 | :--------------------------------------------------------------------------: | :-------: | :--------------------------------------: | :---------------------------------: |
@@ -81,7 +81,7 @@ node node_modules/tsx/dist/cli.mjs scripts/accept-v030-step7.ts --configured-mod
 
 脚本创建并清理自己的独立数据库、随机 loopback 服务和私有 Agent 工作目录，制造实际等待/超时后由阈值投递，验证聚合、工具、Console、恢复与 Replay；非敏感截图/摘要位于仓库外 output。没有启动个人服务或修改生产配置。分步命令见 [告警接入](docs/v0.3.0-alert-ingestion.md)、[本地源](docs/v0.3.0-live-provider.md)、[Runbook](docs/v0.3.0-runbooks.md)、[调查任务](docs/v0.3.0-investigations.md)、[迁移与资源管理](docs/v0.3.0-migration.md)。
 
-本轮检查：受影响 TS 238/238、Python 72/72、构建/类型/文档/格式通过；实际本地链路与桌面验收通过。全仓 Windows self-test 49 失败，与隔离 HEAD 相同，不能称全仓通过；Ubuntu CI 尚未执行。细节及命令见 [第 8 步审查](docs/v0.3.0-review.md)。
+第 9 步[首轮 Ubuntu CI](https://github.com/ydflow/incident-response-agent/actions/runs/37092209558)：全新 checkout 安装、构建/类型/文档/格式、Runner 自检通过；全仓 TS **3087 passed / 23 原有 skipped / 0 failed**，Python **72 passed**，移动端 **9 passed**、原 Console 三视口 **6 passed**。文档更新后的最新提交仍须完成 CI，实际状态见[发布进度](docs/v0.3.0-progress.md)。第 8 步实际本地数据源/完整桌面链路通过；其全仓 Windows 49 失败与隔离 HEAD 相同，不能称 Windows 全仓通过，详见[审查](docs/v0.3.0-review.md)。
 
 ## 产品界面
 
