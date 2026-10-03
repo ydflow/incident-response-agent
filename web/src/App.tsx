@@ -5,6 +5,7 @@ import {
   createBrowserRouter,
   createHashRouter,
   createRoutesFromElements,
+  useSearchParams,
 } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { LoginPage } from './pages/LoginPage';
@@ -28,6 +29,12 @@ import {
   TracesPage,
   EvaluationsPage,
 } from './features/incident-console/PhaseTwoPages';
+import { LiveConsolePage } from './features/incident-console/LiveConsolePage';
+
+function ConsoleTracesRoute() {
+  const [params] = useSearchParams();
+  return params.get('mode') === 'live' ? <LiveConsolePage /> : <TracesPage />;
+}
 
 let chatPagePromise:
   | Promise<{ default: typeof import('./pages/ChatPage').ChatPage }>
@@ -145,10 +152,11 @@ const appRoutes = createRoutesFromElements(
     >
       <Route path="/overview" element={<OverviewPage />} />
       <Route path="/incidents" element={<IncidentsPage />} />
+      <Route path="/investigations" element={<LiveConsolePage />} />
       <Route path="/approvals" element={<ApprovalsPage />} />
-      <Route path="/traces" element={<TracesPage />} />
+      <Route path="/traces" element={<ConsoleTracesRoute />} />
       <Route path="/evaluations" element={<EvaluationsPage />} />
-      {['investigations', 'services', 'system-settings'].map((path) => (
+      {['services', 'system-settings'].map((path) => (
         <Route key={path} path={`/${path}`} element={<ConsolePendingPage />} />
       ))}
     </Route>

@@ -1,4 +1,25 @@
-# 故障智巡：真实模型故障调查 Demo
+# 故障智巡 Demo：v0.3.0 本地完整调查与历史模型记录
+
+## 当前 v0.3.0 本地受控演示（2026-10-03）
+
+实际请求制造资源槽等待/超时，由明确阈值规则投递认证 Webhook，聚合成持久化任务，调用运行中源的日志/指标和 Runbook，保存真实事件/引用并展示 Console；人工恢复演示配置后重新取证，源停后只读 Replay。它不是生产数据库或实际 Alertmanager 联调。
+
+```powershell
+npm run build:all
+node node_modules/tsx/dist/cli.mjs scripts/accept-v030-step7.ts --legacy-ui
+# 可选：只读使用已有启用 Provider，最多两次 HTTP 预算
+node node_modules/tsx/dist/cli.mjs scripts/accept-v030-step7.ts --configured-model --legacy-ui
+```
+
+脚本管理自己的独立 DB、随机 loopback 服务、测试账户和私有 Agent cwd，结束清理。实际新增超时 5/峰值等待 5 后触发告警，8 次重复投递中 7 次幂等，另一同窗口告警聚合；越出环境 403。观测与知识分别保存，没有读取标准答案。
+
+本轮真实 Provider **1 次请求超时**，manual/ESCALATED；真实模型最终诊断未通过，保留 2 实际 Evidence、3 知识引用和 3 个宿主只读调用，没有模型发起工具调用。随后由操作者恢复配置，8 个实际请求成功，新日志/指标验证 verified，最终调查仍 ESCALATED，不宣布根因已证明或生产问题已解决。
+
+工具/浏览器/恢复/Replay 本地边界验收通过不等于模型诊断通过。[第 8 步审查](v0.3.0-review.md)记录最新检查，[迁移说明](v0.3.0-migration.md)说明依赖、资源管理与范围，[README 新增截图](../README.md#v030-新增了什么)为本轮非敏感测试资产。
+
+## 历史 Fixture 真实模型 Demo（2026-09-26，保留原记录）
+
+以下历史运行以 Fixture 为证据源，不是 v0.3.0 实时接入验收，也不替代当前真实模型超时结果。
 
 运行日期：2026-09-26。每个 Case 各执行一次真实模型回合；没有使用测试 Fake LLM，也没有重试、补发纠正提示或把 Ground Truth 放进 Prompt。模型为当前 MiniClaw 配置的 `step-3.5-flash/step-5-preview`，通过项目的 `PiRuntimeAdapter`、真实 MCP Tool Layer、Fixture Loader、Evidence Collector、IncidentLifecycle、AgentEvent 与 JSONL Event Store 运行。Agent 的临时工作目录与仓库隔离，只开放四个查询工具和三个受 Approval Gate 管控的模拟处置工具；没有开放文件读取工具。
 

@@ -63,7 +63,23 @@ Incident Response System（故障智巡）
 
 以上是**责任分层**，不是声称所有层已有独立在线服务或 Web 页面。当前 Incident 主链由 `incident_agent/`、Runner 的 `incident-*` 模块、受限 Demo、测试以及 Console 的薄 API/展示层构成；通用工作台仍保留用于配置兼容，独立 Incident Console 已接入。诊断建议不等于处置完成；审批通过后的 Executor 当前也只做模拟动作。Ground Truth 仅供 Evaluation 使用，不进入 Agent 工具结果或提示词。
 
-## Acknowledgements
+## v0.3.0 工作树增量（2026-10-03）
+
+以下是当前未提交业务增量，按源码与本轮审查核验；不把未提交内容称为已发布能力，也不推断由个人从零独立开发底层 Runtime。
+
+| 能力                         | 归属                     | 实现与边界                                                                                                                                                                                                                                                                                            |
+| ---------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Webhook / Alertmanager、聚合 | Project-owned            | [路由](../src/routes/incident-alerts.ts)、[归一化](../src/incident-alert-types.ts)、[SQLite](../src/incident-store.ts)；协议兼容，不是实际监控联调                                                                                                                                                    |
+| 现场日志/指标与资源槽服务    | Project-owned            | [独立 Provider](../container/agent-runner/src/incident-live-provider.ts)、[演示源](../src/incident-local-demo.ts)；真实本地 HTTP，非生产 DB；Trace/Git unsupported                                                                                                                                    |
+| 手册与 BM25 / 知识快照       | Project-owned            | [Runbook](../runbooks/)、[词法索引](../container/agent-runner/src/incident-runbooks.ts)、[知识引用](../container/agent-runner/src/incident-knowledge.ts)；不是向量/生产 RAG 或观测证据                                                                                                                |
+| 持久化调查与预算             | Project-owned / Extended | [任务存储](../src/incident-investigation-store.ts)、[Worker](../src/incident-investigation-worker.ts)、[预算](../src/incident-model-budget.ts)和[受限 Runner](../container/agent-runner/src/incident-investigation-runner.ts)为业务新增，复用原 PiRuntimeAdapter/Session；没有实现新的通用 Agent Loop |
+| Console / 鉴权 / 迁移接入    | Extended                 | [现场投影](../src/incident-console-live.ts)与[页面](../web/src/features/incident-console/LiveConsolePage.tsx)为新增；复用原 Web Shell、React、用户认证及数据库备份/迁移框架                                                                                                                           |
+| 恢复验证 / 历史 Replay       | Project-owned / Extended | [只读验证](../src/incident-recovery-verification.ts)、[纯检查](../src/incident-recovery-record.ts)、[历史投影](../src/incident-investigation-history.ts)新增；复用原状态机/十事件 Replay，不增加生产 executor                                                                                         |
+| EvoHarnessAlert 参考         | Design reference         | 只阅读设计，未整仓移植；固定参考提交及已实现/占位/规划区分见[计划](v0.3.0-upgrade-plan.md#3-evoharnessalert-阅读结论)                                                                                                                                                                                 |
+
+真实模型当前请求超时并升级，最终诊断未通过；生产数据源、实际 Alertmanager、外部通知与生产自动处置未接入。当前验收边界见[审查报告](v0.3.0-review.md)。
+
+## Acknowledgements（来源保留）
 
 本系统沿用 MiniClaw 导入基线的宿主服务、Web Shell、Pi Runtime 适配、Provider/Session/Context 与通用 MCP 工具层。Incident 业务层通过其工具接入点运行。MiniClaw 与其贡献者的版权和许可证见仓库根目录 [`LICENSE`](../LICENSE)；项目说明中的上游致谢见 [`README.md`](../README.md#acknowledgements) 与 [`NOTICE`](../NOTICE)。
 

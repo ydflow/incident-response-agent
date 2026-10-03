@@ -1,17 +1,19 @@
 # Miniclaw 品牌清理记录
 
+> 历史导入基线的品牌迁移记录，保留原文。本文旧“公开身份统一 Miniclaw”规则不代表当前故障智巡的产品命名；v0.3.0 以故障智巡呈现，运行时兼容名称、原版权与能力来源仍保留，见[能力归属](project-ownership.md)。
+
 本文记录 Miniclaw 独立品牌清理时发现的旧项目引用、处理范围和有意保留的第三方引用。除本记录的审计词表外，公开项目身份统一使用 Miniclaw 与 `https://github.com/helsome/miniclaw`。
 
 ## 清理规则
 
-| 旧引用 | 范围 | 处理方式 |
-| --- | --- | --- |
-| `HappyClaw` / `happyclaw` / `HAPPYCLAW` | `src/`、`web/`、`container/`、`scripts/`、`tests/`、`docs/`、Makefile、CI、配置和 prompts | 统一改为 Miniclaw 的品牌、类型名、环境变量、标记和运行时命名 |
-| `riba2534/happyclaw` | 根 `package.json`、`web/package.json`、Agent Runner metadata、README、About/Bug Report、CI 与测试契约 | 改为 `helsome/miniclaw`，并同步 lockfile |
-| `https://happyclaw.cc/` | README、网页元信息和链接 | 移除旧站点链接；项目首页使用 GitHub 仓库 |
-| 旧项目 badges、homepage、bugs、repository URL、author | README、package metadata、网页设置页和诊断页面 | 改为 Miniclaw 仓库、问题反馈地址和维护者 metadata |
-| `happyclaw-bootstrap`、`bootstrap.happyclaw.md`、旧测试文件名 | `src/`、`container/agent-runner/prompts/`、`tests/` | 重命名为 `miniclaw-*`，并同步 import、prompt loader 和测试路径 |
-| `happyclaw-agent`、`happyclaw-backup-*`、旧容器缓存目录 | Makefile、Dockerfile、GitHub Actions、`.gitignore`、脚本 | 改为 `miniclaw-agent`、`miniclaw-backup-*` 和 `miniclaw-*` |
+| 旧引用                                                        | 范围                                                                                                  | 处理方式                                                       |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `HappyClaw` / `happyclaw` / `HAPPYCLAW`                       | `src/`、`web/`、`container/`、`scripts/`、`tests/`、`docs/`、Makefile、CI、配置和 prompts             | 统一改为 Miniclaw 的品牌、类型名、环境变量、标记和运行时命名   |
+| `riba2534/happyclaw`                                          | 根 `package.json`、`web/package.json`、Agent Runner metadata、README、About/Bug Report、CI 与测试契约 | 改为 `helsome/miniclaw`，并同步 lockfile                       |
+| `https://happyclaw.cc/`                                       | README、网页元信息和链接                                                                              | 移除旧站点链接；项目首页使用 GitHub 仓库                       |
+| 旧项目 badges、homepage、bugs、repository URL、author         | README、package metadata、网页设置页和诊断页面                                                        | 改为 Miniclaw 仓库、问题反馈地址和维护者 metadata              |
+| `happyclaw-bootstrap`、`bootstrap.happyclaw.md`、旧测试文件名 | `src/`、`container/agent-runner/prompts/`、`tests/`                                                   | 重命名为 `miniclaw-*`，并同步 import、prompt loader 和测试路径 |
+| `happyclaw-agent`、`happyclaw-backup-*`、旧容器缓存目录       | Makefile、Dockerfile、GitHub Actions、`.gitignore`、脚本                                              | 改为 `miniclaw-agent`、`miniclaw-backup-*` 和 `miniclaw-*`     |
 
 ## 兼容性说明
 

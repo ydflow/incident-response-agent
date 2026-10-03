@@ -6,7 +6,7 @@
 ## 约定
 
 - API 默认前缀为 `/api`，WebSocket 为 `/ws`。
-- 除明确标记 Public 的接口外，均需要有效的 Miniclaw Cookie Session。
+- 除明确标记 Public 的接口和告警专用 Bearer 入口外，均需要有效的 Miniclaw Cookie Session。
 - 资源接口还会执行 owner、角色、Permission、Host 执行权限等检查，见
   [ACL 权限矩阵](ACL-MATRIX.md)。
 - 其他用户的资源通常以 `404` 返回，避免泄漏资源是否存在。
@@ -14,32 +14,39 @@
 
 ## 路由模块
 
-| 前缀                               | 实现                             | 用途                          |
-| ---------------------------------- | -------------------------------- | ----------------------------- |
-| `/api/auth`                        | `src/routes/auth.ts`             | 初始化、登录、账户、设备      |
-| `/api/groups`                      | `src/routes/groups.ts`           | 工作区兼容模型、消息和环境    |
-| `/api/groups`                      | `src/routes/files.ts`            | 工作区文件                    |
-| `/api/groups`                      | `src/routes/agents.ts`           | Runtime Session 与渠道绑定    |
-| `/api/groups`                      | `src/routes/workspace-config.ts` | 项目 Skills/MCP               |
-| `/api/workspaces`                  | `src/routes/workspaces.ts`       | Agent-first 工作区投影        |
-| `/api/agent-profiles`              | `src/routes/agent-profiles.ts`   | 产品级 Agent                  |
-| `/api/channel-accounts`            | `src/routes/channel-accounts.ts` | 多渠道账号                    |
-| `/api/config`                      | `src/routes/config.ts`           | Provider、系统与兼容渠道配置  |
-| `/api/tasks`                       | `src/routes/tasks.ts`            | 定时任务和运行                |
-| `/api/memory`                      | `src/routes/memory.ts`           | Workspace Memory v2           |
-| `/api/skills`                      | `src/routes/skills.ts`           | 用户 Skills                   |
-| `/api/mcp-servers`                 | `src/routes/mcp-servers.ts`      | 用户/系统 MCP                 |
-| `/api/plugins`                     | `src/routes/plugins.ts`          | Plugin Catalog 与用户启用状态 |
-| `/api/usage`                       | `src/routes/usage.ts`            | Token 用量                    |
-| `/api/incident-console`            | `src/routes/incident-console.ts` | 故障总览、追踪、评测与审批    |
-| `/api/billing`                     | `src/routes/billing.ts`          | 订阅、余额和计费管理          |
-| `/api/admin`                       | `src/routes/admin.ts`            | 用户、邀请和审计              |
-| `/api/bug-report`                  | `src/routes/bug-report.ts`       | 脱敏问题报告                  |
-| `/api/browse`                      | `src/routes/browse.ts`           | Host 目录选择                 |
-| `/api`                             | `src/routes/monitor.ts`          | 健康、状态和 Docker 构建      |
-| `/api/messages`、`/api/follow-ups` | `src/web.ts`                     | 消息发送和 Follow-up          |
+| 前缀                               | 实现                             | 用途                           |
+| ---------------------------------- | -------------------------------- | ------------------------------ |
+| `/api/auth`                        | `src/routes/auth.ts`             | 初始化、登录、账户、设备       |
+| `/api/groups`                      | `src/routes/groups.ts`           | 工作区兼容模型、消息和环境     |
+| `/api/groups`                      | `src/routes/files.ts`            | 工作区文件                     |
+| `/api/groups`                      | `src/routes/agents.ts`           | Runtime Session 与渠道绑定     |
+| `/api/groups`                      | `src/routes/workspace-config.ts` | 项目 Skills/MCP                |
+| `/api/workspaces`                  | `src/routes/workspaces.ts`       | Agent-first 工作区投影         |
+| `/api/agent-profiles`              | `src/routes/agent-profiles.ts`   | 产品级 Agent                   |
+| `/api/channel-accounts`            | `src/routes/channel-accounts.ts` | 多渠道账号                     |
+| `/api/config`                      | `src/routes/config.ts`           | Provider、系统与兼容渠道配置   |
+| `/api/tasks`                       | `src/routes/tasks.ts`            | 定时任务和运行                 |
+| `/api/memory`                      | `src/routes/memory.ts`           | Workspace Memory v2            |
+| `/api/skills`                      | `src/routes/skills.ts`           | 用户 Skills                    |
+| `/api/mcp-servers`                 | `src/routes/mcp-servers.ts`      | 用户/系统 MCP                  |
+| `/api/plugins`                     | `src/routes/plugins.ts`          | Plugin Catalog 与用户启用状态  |
+| `/api/usage`                       | `src/routes/usage.ts`            | Token 用量                     |
+| `/api/incident-console`            | `src/routes/incident-console.ts` | 故障总览、追踪、评测与审批     |
+| `/api/incident-alerts`             | `src/routes/incident-alerts.ts`  | 受限告警接入、持久化与聚合查询 |
+| `/api/billing`                     | `src/routes/billing.ts`          | 订阅、余额和计费管理           |
+| `/api/admin`                       | `src/routes/admin.ts`            | 用户、邀请和审计               |
+| `/api/bug-report`                  | `src/routes/bug-report.ts`       | 脱敏问题报告                   |
+| `/api/browse`                      | `src/routes/browse.ts`           | Host 目录选择                  |
+| `/api`                             | `src/routes/monitor.ts`          | 健康、状态和 Docker 构建       |
+| `/api/messages`、`/api/follow-ups` | `src/web.ts`                     | 消息发送和 Follow-up           |
 
 ## 认证
+
+`/api/incident-alerts` 复用 Cookie Session 并要求独立 `ingest_alerts` 权限；也接受管理员签发、绑定现有有效账户及来源/服务/环境范围的专用 Bearer。这个 Bearer 仅适用于该路由族，不能用于其他管理 API。签发及撤销入口只允许管理员 Cookie Session。协议、限制和 PowerShell 示例见 [v0.3.0 告警接入](v0.3.0-alert-ingestion.md)。
+
+第 5 步增加同范围的 `GET /incidents/:id/investigations` 与 `GET /incidents/:id/investigations/:run`，返回任务/run、独立观测与知识、工具历史、预算和最终报告。`POST /incidents/:id/investigations` 仅管理员 Cookie Session 显式建立下一代重查任务；专用 Bearer、普通成员与活动任务分别拒绝。入队不调用模型或批准动作。执行、schema 71、恢复与只读 Replay 说明见[持久化调查](v0.3.0-investigations.md)。
+
+第 6 步增加同权限/来源范围的 `GET /console/incidents`、`GET /console/incidents/:id`、`GET /console/incidents/:id/runs/:run`。按最多 20 项分页，将现场观测、手册、报告、实际事件及只读回放分开返回；服务端检查 Incident/run/reference 归属，脱敏并限制整体 256 KiB。原第 5 步调查 GET 同步限制/脱敏，Console 使用新分页接口。详见[现场 Console](v0.3.0-console.md)。
 
 Public：
 

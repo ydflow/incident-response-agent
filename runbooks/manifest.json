@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "documents": [
+    {
+      "doc_id": "resource-pool",
+      "version": "1.0.0",
+      "file": "resource-pool.md",
+      "services": ["payment-service", "orders", "api-service"],
+      "environments": ["local", "staging"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    },
+    {
+      "doc_id": "dependency-timeout",
+      "version": "1.0.0",
+      "file": "dependency-timeout.md",
+      "services": [
+        "payment-service",
+        "orders",
+        "api-service",
+        "worker-service"
+      ],
+      "environments": ["local", "staging"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    },
+    {
+      "doc_id": "deployment-anomaly",
+      "version": "1.0.0",
+      "file": "deployment-anomaly.md",
+      "services": [
+        "payment-service",
+        "orders",
+        "api-service",
+        "worker-service"
+      ],
+      "environments": ["local", "staging"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    },
+    {
+      "doc_id": "disk-pressure",
+      "version": "1.0.0",
+      "file": "disk-pressure.md",
+      "services": ["api-service", "worker-service", "db-service"],
+      "environments": ["local", "staging"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    },
+    {
+      "doc_id": "task-backlog",
+      "version": "1.0.0",
+      "file": "task-backlog.md",
+      "services": ["worker-service"],
+      "environments": ["local", "staging"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    }
+  ]
+}

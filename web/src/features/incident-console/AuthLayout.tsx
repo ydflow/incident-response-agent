@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { INCIDENT_PRODUCT_VERSION } from './product-version';
 import {
   Activity,
   ClipboardCheck,
@@ -125,7 +126,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <div className="incident-auth__footer-brand">
           <span>故障智巡</span>
           <span className="incident-auth__footer-divider" aria-hidden="true" />
-          <span>v0.2.0</span>
+          <span>{INCIDENT_PRODUCT_VERSION}</span>
         </div>
         <span>© {new Date().getFullYear()} 故障智巡</span>
       </footer>

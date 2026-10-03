@@ -14,15 +14,78 @@
 
 故障智巡以 **Incident 为中心**组织调查：通过只读工具采集日志、指标、链路与变更，形成可追溯的 Evidence；诊断必须引用已收集的证据。证据冲突或不足时，流程升级人工复核。涉及处置的 ToolCall 先经过 `SAFE / ASK / BLOCK` 策略；`ASK` 由可信宿主审批，`BLOCK` 直接阻止。关键状态与决策写入 `AgentEvent` / JSONL，可按历史事件只读回放。
 
-> **项目阶段：可运行的模拟故障演示与确定性验收。** 目前使用仓库内 Fixture，处置 Executor 只执行模拟动作；尚未接入生产监控或真实服务操作。
+> **v0.3.0 发布准备：可复现的本地故障调查链路。** 新增认证告警入口、聚合、持久化任务、运行中演示服务日志/指标、Markdown/BM25 手册和现场 Console。原 12 个 Fixture 与模拟审批保留。当前真实模型尝试超时并升级人工；生产数据源、实际 Alertmanager 和生产处置均未验收。版本尚未发布，详见 [Release 草稿](docs/releases/v0.3.0.md)。
 
-| 只读取证 | 模拟案例 |    核心验收     |            处置边界             |
-| :------: | :------: | :-------------: | :-----------------------------: |
-| 4 个工具 |  12 例   | 42 项确定性测试 | `SAFE / ASK / BLOCK` + 人工审批 |
+|                                   只读取证                                   | 模拟案例  |                 核心验收                 |              处置边界               |
+| :--------------------------------------------------------------------------: | :-------: | :--------------------------------------: | :---------------------------------: |
+| Fixture 四工具＋现场四工具（日志/指标可用，Trace/Git unsupported）＋手册检索 | 12 例保留 | 原核心 42 项；本轮 Python 全量 72 项通过 | `SAFE / ASK / BLOCK` + 可信宿主审批 |
+
+## v0.3.0 新增了什么
+
+```text
+受控真实请求 → 有界阈值规则 → 认证 Webhook → SQLite 投递幂等/故障窗口聚合
+→ 持久化任务/原子租约 → 实时只读取证 + Runbook → 诊断或人工升级
+→ Console 引用与事件 → 只读 Replay
+操作者恢复演示配置 → 新一轮只读观测 → 恢复验证记录（不自动 RESOLVED）
+```
+
+| 能力                   | 当前状态与边界                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| Webhook / Alertmanager | 通用入口与 Alertmanager v4 协议兼容；专用 ingest_alerts 权限、范围凭据；未连接实际 Alertmanager |
+| 聚合与任务             | 投递键与聚合键独立；服务/环境/指纹/时间窗口隔离；SQLite 事务、唯一约束、租约 fencing、有限重试  |
+| 现场只读 Provider      | 独立 LIVE ID；仅宿主绑定本地受控源，真实日志/指标；Trace/Git 明确 unsupported，不回退 Fixture   |
+| Runbook                | 五类独立通用 Markdown 手册，按范围和版本先过滤再 BM25；知识引用不是当前观测证据                 |
+| 真实模型               | 已配置 Provider 本轮有限 E2E 请求超时，保存实际观测并升级人工；最终模型诊断未通过               |
+| 恢复验证               | 人工恢复声明、新观测与调查最终状态分开；8 次实际恢复请求成功，验证 verified，但调查仍 ESCALATED |
+| 生产接入/处置          | 未接入、未验证；原执行器仍只做模拟动作，现场调查无动作执行器或外部通知                          |
+
+### 告警与任务：看清投递、聚合和失败状态
+
+本轮 1440×900 桌面验收截图，独立测试库。阈值告警来自正在运行的资源槽演示服务；其余排队、领取、重试和失败记录用于受控状态验收。新增服务/环境筛选、P1 优先级、聚合/投递计数及任务状态。P0–P3 与动作风险分开。
+
+![v0.3.0 告警与持久化任务，区分已绑定本地源与未接入数据源](docs/screenshots/v030-alerts-tasks.png)
+
+### 观测 Evidence 与手册引用分别呈现
+
+Evidence 展示真实来源、观测时间、查询窗口、关联 ID 和原始条目位置；图中窗口开头的正常指标也是有效观测，不以手册文本或静态 JSON 代替现场数据。此轮未使用模型，三个调用是宿主实际只读 preflight。
+
+![v0.3.0 运行中服务的观测证据及查询范围](docs/screenshots/v030-observed-evidence.png)
+
+Runbook 展示章节、独立文档版本、内容哈希、原文位置、查询和排名；手册只支持调查步骤，不能证明根因成立。图中的 1.0.0 是手册版本。
+
+![v0.3.0 BM25 手册引用，版本与片段可核对](docs/screenshots/v030-runbook-reference.png)
+
+<details>
+<summary><strong>恢复验证与只读回放</strong></summary>
+
+人工恢复配置后重新查询日志/指标，检查新成功请求和新增失败、最终等待/资源槽状态。累计 acquire_timeouts 仍为 5；恢复判断依据恢复窗口增量为 0。观测验证通过与调查已解决分别处理，界面仍显示 ESCALATED。
+
+![v0.3.0 人工恢复声明与十项只读观测检查，未自动解决调查](docs/screenshots/v030-recovery-verification.png)
+
+真实模型超时也保留为失败原因；回放读取既存事件，演示源已停止，不重新调用模型、Provider、手册或执行器。
+
+![v0.3.0 历史事件只读回放，保留模型超时和人工升级](docs/screenshots/v030-readonly-replay.png)
+
+</details>
+
+### 一条命令复现本地链路
+
+在仓库根目录，使用已安装的 Node.js 24、Python 3.13（优先仓库 .venv）和 Chromium；先按下方安装说明准备依赖，不需要模型凭据运行确定性/本地源验收。
+
+```powershell
+npm run build:all
+node node_modules/tsx/dist/cli.mjs scripts/accept-v030-step7.ts --legacy-ui
+# 可选：只读使用已有启用 Provider，一轮最多两次模型 HTTP 预留，不保证诊断成功
+node node_modules/tsx/dist/cli.mjs scripts/accept-v030-step7.ts --configured-model --legacy-ui
+```
+
+脚本创建并清理自己的独立数据库、随机 loopback 服务和私有 Agent 工作目录，制造实际等待/超时后由阈值投递，验证聚合、工具、Console、恢复与 Replay；非敏感截图/摘要位于仓库外 output。没有启动个人服务或修改生产配置。分步命令见 [告警接入](docs/v0.3.0-alert-ingestion.md)、[本地源](docs/v0.3.0-live-provider.md)、[Runbook](docs/v0.3.0-runbooks.md)、[调查任务](docs/v0.3.0-investigations.md)、[迁移与资源管理](docs/v0.3.0-migration.md)。
+
+本轮检查：受影响 TS 238/238、Python 72/72、构建/类型/文档/格式通过；实际本地链路与桌面验收通过。全仓 Windows self-test 49 失败，与隔离 HEAD 相同，不能称全仓通过；Ubuntu CI 尚未执行。细节及命令见 [第 8 步审查](docs/v0.3.0-review.md)。
 
 ## 产品界面
 
-以下截图来自仓库的 **1440 × 900 桌面端浏览器验收**。页面读取模拟案例目录和本地运行记录；图中的状态、事件与评测结果是该验收环境的快照，不代表实时生产服务。当前为统一的故障控制台，包含使用者视角的总览和管理审计视角的审批、追踪、评测页面。
+以下为保留的 **v0.2.0 历史 Fixture 界面截图**，不是本轮 v0.3.0 新验收。页面读取模拟案例和本地运行记录，图中状态不代表生产服务；新增能力的本轮图片见上节。
 
 ### 登录入口 · 调查、审批与追踪
 
@@ -70,11 +133,11 @@ Incident Response System（故障智巡）
 ├─ Policy / Approval     SAFE / ASK / BLOCK、人工审批与模拟处置
 ├─ Trace / Replay        AgentEvent、JSONL 与只读回放
 ├─ Evaluation            12 个案例与确定性核心测试
-└─ Agent Runtime         MiniClaw-derived runtime
+└─ Agent Runtime         复用宿主 Runtime 与适配层
    └─ Pi Runtime、Provider、Session、Context、通用 Tool Calling
 ```
 
-这张图描述系统责任层次，不表示每一层都是独立服务。底层复用 MiniClaw 的 Agent Runtime、Tool Calling 和宿主基础；本项目主要构建 Incident Domain、Evidence Investigation、Safety Policy、Human Approval、AgentEvent Trace、Replay 与 Evaluation。详细归属及代码位置见 [`docs/project-ownership.md`](docs/project-ownership.md)。
+这张图描述系统责任层次，不表示每一层都是独立服务。底层 Runtime、Tool Calling 和宿主基础为复用能力；本项目构建 Incident 调查、告警聚合、持久化任务、现场取证、手册、策略审批、Trace/Replay 与 Evaluation。完整来源与代码位置见 [`docs/project-ownership.md`](docs/project-ownership.md) 及文末致谢。
 
 ## Investigation Workflow
 
@@ -97,11 +160,11 @@ Incident Response System（故障智巡）
 
 策略在工具执行前判定，实现在 [`incident-approval-gate.ts`](container/agent-runner/src/incident-approval-gate.ts)：
 
-| 决策    | 当前工具                                              | 行为                               |
-| ------- | ----------------------------------------------------- | ---------------------------------- |
-| `SAFE`  | 四个 `query_*` 工具                                   | 允许只读 Fixture 查询              |
-| `ASK`   | `restart_service`、`rollback_config`、`modify_config` | 创建待审批请求；Agent 自己不能批准 |
-| `BLOCK` | `delete_database` 及未知或策略异常的调用              | 拒绝执行                           |
+| 决策    | 当前工具                                              | 行为                                             |
+| ------- | ----------------------------------------------------- | ------------------------------------------------ |
+| `SAFE`  | Fixture 四工具、query_live 四工具、search_runbooks    | 仅允许所选受限会话的读查询，unsupported 如实返回 |
+| `ASK`   | `restart_service`、`rollback_config`、`modify_config` | 创建待审批请求；Agent 自己不能批准               |
+| `BLOCK` | `delete_database` 及未知或策略异常的调用              | 拒绝执行                                         |
 
 **Fail-Closed：**策略读取失败、审批状态不可用或审批记录不一致时，处置不会进入 Executor。`allow` / `reject` 只由可信宿主调用，不注册为 Agent 工具。即使人工批准，当前 Executor 也仅运行 [`incident-remediation-tools.ts`](container/agent-runner/src/incident-remediation-tools.ts) 中的模拟动作，不操作真实服务。状态流转由 [`incident_agent/state_machine.py`](incident_agent/state_machine.py) 约束。
 
@@ -174,14 +237,14 @@ Get-Content $trace.FullName
 
 ## Project Boundary
 
-- 全部故障数据来自本仓库 Fixture；没有连接真实生产 Logs、Metrics、Trace、Git 或告警系统。
+- 旧案例来自 Fixture；新日志/指标来自运行中的本地受控资源槽服务。生产 Logs/Metrics/Trace/Git、真实 Alertmanager 尚未连接。
 - Remediation 仅为模拟执行；这里的人工审批是可信宿主侧的审批门槛，不表示已接入真实运维审批平台。
 - 12 项 Workflow 测试是确定性评测；真实 LLM Demo 的输出可能变化。
 - 本项目用于演示和评测，**不宣称 production-ready**。通用 MiniClaw 工作区的文件权限取决于上游配置；本项目的 Ground Truth 隔离是针对事故 Fixture Tool Adapter 与受限 Demo 路径。
 
 ## Future Integration
 
-未来可通过 Adapter 接入 Prometheus、Loki、OpenTelemetry 和真实 Git Provider，替换 Fixture 数据源。这些接入目前**尚未实现**。
+未来可通过独立只读 Adapter 接入 Prometheus、Loki、OpenTelemetry 和真实 Git Provider；这些生产接入目前**尚未实现**。继续保留独立 Fixture 路由，不以现场 ID 读取案例文件。
 
 ## Runtime Notes
 

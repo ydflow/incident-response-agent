@@ -1,0 +1,137 @@
+{
+  "description": "Independent manual relevance judgements for generic operational queries. Evaluation-only; never loaded by the search library or tools.",
+  "cases": [
+    {
+      "id": "pool-zh",
+      "service": "payment-service",
+      "environment": "local",
+      "query": "连接池耗尽 获取连接超时",
+      "expected_docs": ["resource-pool"],
+      "expected_first": "resource-pool"
+    },
+    {
+      "id": "pool-en",
+      "service": "orders",
+      "environment": "staging",
+      "query": "pool_waiting acquire timeout",
+      "expected_docs": ["resource-pool"],
+      "expected_first": "resource-pool"
+    },
+    {
+      "id": "dependency-zh",
+      "service": "payment-service",
+      "environment": "local",
+      "query": "依赖超时 HTTP 504 下游",
+      "expected_docs": ["dependency-timeout"],
+      "expected_first": "dependency-timeout"
+    },
+    {
+      "id": "dependency-en",
+      "service": "orders",
+      "environment": "local",
+      "query": "upstream timeout connection refused",
+      "expected_docs": ["dependency-timeout"],
+      "expected_first": "dependency-timeout"
+    },
+    {
+      "id": "deployment-zh",
+      "service": "api-service",
+      "environment": "staging",
+      "query": "发布异常 新版本 灰度组",
+      "expected_docs": ["deployment-anomaly"],
+      "expected_first": "deployment-anomaly"
+    },
+    {
+      "id": "deployment-en",
+      "service": "worker-service",
+      "environment": "local",
+      "query": "deploy regression",
+      "expected_docs": ["deployment-anomaly"],
+      "expected_first": "deployment-anomaly"
+    },
+    {
+      "id": "disk-zh",
+      "service": "api-service",
+      "environment": "local",
+      "query": "磁盘不足 inode ENOSPC",
+      "expected_docs": ["disk-pressure"],
+      "expected_first": "disk-pressure"
+    },
+    {
+      "id": "disk-en",
+      "service": "db-service",
+      "environment": "staging",
+      "query": "disk full no space left",
+      "expected_docs": ["disk-pressure"],
+      "expected_first": "disk-pressure"
+    },
+    {
+      "id": "queue-zh",
+      "service": "worker-service",
+      "environment": "local",
+      "query": "任务堆积 消息积压 消费速率",
+      "expected_docs": ["task-backlog"],
+      "expected_first": "task-backlog"
+    },
+    {
+      "id": "queue-en",
+      "service": "worker-service",
+      "environment": "staging",
+      "query": "queue backlog consumer lag",
+      "expected_docs": ["task-backlog"],
+      "expected_first": "task-backlog"
+    },
+    {
+      "id": "wrong-service",
+      "service": "payment-service",
+      "environment": "local",
+      "query": "backlog",
+      "expected_docs": [],
+      "expected_first": null
+    },
+    {
+      "id": "wrong-environment",
+      "service": "orders",
+      "environment": "production",
+      "query": "pool exhausted",
+      "expected_docs": [],
+      "expected_first": null
+    },
+    {
+      "id": "no-match",
+      "service": "orders",
+      "environment": "local",
+      "query": "zxqv_nonexistent_symptom",
+      "expected_docs": [],
+      "expected_first": null
+    },
+    {
+      "id": "wrong-handbook",
+      "service": "api-service",
+      "environment": "local",
+      "query": "ENOSPC inode 文件系统只读",
+      "expected_docs": ["disk-pressure"],
+      "expected_first": "disk-pressure",
+      "excluded_first": "resource-pool"
+    },
+    {
+      "id": "old-version",
+      "service": "orders",
+      "environment": "local",
+      "query": "legacy_pool_2019",
+      "expected_docs": [],
+      "expected_first": null,
+      "review_corpus": "expired_pool"
+    },
+    {
+      "id": "current-version",
+      "service": "orders",
+      "environment": "local",
+      "query": "pool exhausted",
+      "expected_docs": ["resource-pool"],
+      "expected_first": "resource-pool",
+      "expected_version": "1.0.0",
+      "review_corpus": "expired_pool"
+    }
+  ]
+}

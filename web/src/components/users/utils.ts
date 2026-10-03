@@ -8,7 +8,10 @@ export function getErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function samePermissions(left: Permission[], right: Permission[]): boolean {
+export function samePermissions(
+  left: Permission[],
+  right: Permission[],
+): boolean {
   if (left.length !== right.length) return false;
   const a = [...left].sort();
   const b = [...right].sort();
@@ -22,6 +25,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   manage_invites: '邀请码管理',
   view_audit_log: '查看审计日志',
   manage_billing: '计费管理',
+  ingest_alerts: '告警接入与查询',
 };
 
 export const ROLE_LABELS: Record<string, string> = {
