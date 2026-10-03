@@ -1,6 +1,9 @@
 /** Observe incident MCP ToolCalls at the handler boundary, including failures. */
 import { randomUUID } from 'node:crypto';
-import type { InMemoryIncidentEvents } from './incident-agent-events.js';
+import type {
+  InMemoryIncidentEvents,
+  JsonValue,
+} from './incident-agent-events.js';
 import type {
   CollectedIncidentEvidence,
   InMemoryIncidentEvidence,
@@ -23,6 +26,8 @@ type IncidentToolEventOptions = {
   collectsEvidence?: boolean;
   evidence?: InMemoryIncidentEvidence;
   timeoutMs?: number;
+  /** Trusted, optional result snapshot; core event keys always take precedence. */
+  resultPayload?: (result: McpToolResult) => Record<string, JsonValue>;
 };
 
 async function runWithDeadline(
@@ -111,6 +116,7 @@ export function withIncidentToolEvents(
             ? await definition.handler(args, extra)
             : await runWithDeadline(definition, args, extra, options.timeoutMs);
         events.emit(incidentId, 'ToolResult', {
+          ...options.resultPayload?.(result),
           tool: definition.name,
           tool_call_id: toolCallId,
           status: result.isError ? 'error' : 'returned',

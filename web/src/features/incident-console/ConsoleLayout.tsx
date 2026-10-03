@@ -26,6 +26,7 @@ import {
 import { api } from '../../api/client';
 import { useAuthStore } from '../../stores/auth';
 import type { Snapshot } from './model';
+import { INCIDENT_PRODUCT_VERSION } from './product-version';
 import './console.css';
 
 export const consoleNavigation = [
@@ -149,9 +150,9 @@ export function ConsoleLayout() {
             >
               <Icon size={18} />
               <span>{label}</span>
-              {['/investigations', '/services', '/system-settings'].includes(
-                path,
-              ) && <small>开发中</small>}
+              {['/services', '/system-settings'].includes(path) && (
+                <small>开发中</small>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -278,7 +279,7 @@ export function ConsoleLayout() {
           />
         </main>
         <footer className="ic-footer">
-          <span>故障智巡 · v0.2.0</span>
+          <span>故障智巡 · {INCIDENT_PRODUCT_VERSION}</span>
           <span>证据 · 审批 · Trace</span>
         </footer>
       </div>

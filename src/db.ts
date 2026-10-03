@@ -96,6 +96,14 @@ import {
   reconcileLegacyOwnerProfileMemory,
 } from './owner-profile-store.js';
 import { splitLegacyEmbeddedReferenceContent } from './message-prompt.js';
+import {
+  bindIncidentDatabase,
+  createIncidentSchema,
+} from './incident-store.js';
+import {
+  createInvestigationSchema,
+  bindInvestigationDatabase,
+} from './incident-investigation-store.js';
 
 let db: InstanceType<typeof Database>;
 /**
@@ -103,7 +111,7 @@ let db: InstanceType<typeof Database>;
  * restating the number. Hardcoding it meant every schema bump edited a dozen
  * unrelated test files, which is churn that hides real assertion changes.
  */
-export const CURRENT_SCHEMA_VERSION = 69;
+export const CURRENT_SCHEMA_VERSION = 71;
 
 export function isDatabaseInitialized(): boolean {
   return Boolean(db?.open);
@@ -2481,6 +2489,10 @@ export function initDatabase(): void {
     }
   }
 
+  createIncidentSchema(db);
+  createInvestigationSchema(db);
+  bindIncidentDatabase(db);
+  bindInvestigationDatabase(db);
   db.prepare(
     'INSERT OR REPLACE INTO router_state (key, value) VALUES (?, ?)',
   ).run('schema_version', String(CURRENT_SCHEMA_VERSION));
@@ -14492,6 +14504,8 @@ export function closeDatabase(): void {
   bindChannelReliabilityDatabase(null);
   bindWorkspaceMemoryDatabase(null);
   bindOwnerProfileDatabase(null);
+  bindIncidentDatabase(null);
+  bindInvestigationDatabase(null);
   if (db) {
     db.close();
   }

@@ -10,12 +10,15 @@ import { readIncidentEvaluation } from '../../../src/incident-console-evaluation
 test('console routes, real catalog, filters and desktop shell', async ({
   page,
 }, testInfo) => {
-  const snapshot = await readIncidentConsole(
-    path.resolve(process.cwd(), '..'),
-    true,
+  const root =
+    process.env.INCIDENT_CONSOLE_TEST_ROOT ?? path.resolve(process.cwd(), '..');
+  const snapshot = await readIncidentConsole(root, true);
+  const runs = await readIncidentRuns(
+    root,
+    process.env.INCIDENT_CONSOLE_TEST_ROOT
+      ? path.join(root, 'data/groups')
+      : undefined,
   );
-  const root = path.resolve(process.cwd(), '..');
-  const runs = await readIncidentRuns(root);
   const evaluation = await readIncidentEvaluation(root);
   const history = runs.flatMap((run) =>
     run.events
@@ -71,6 +74,12 @@ test('console routes, real catalog, filters and desktop shell', async ({
         setupStatus: { needsSetup: false },
       },
       '/api/incident-console': snapshot,
+      '/api/incident-alerts/console/incidents': {
+        items: [],
+        offset: 0,
+        limit: 10,
+        has_more: false,
+      },
       '/api/incident-console/approvals': { pending: [], history },
       '/api/incident-console/traces': { runs: runs.slice(0, 100) },
       '/api/incident-console/evaluation': evaluation,
@@ -219,7 +228,6 @@ test('console routes, real catalog, filters and desktop shell', async ({
   );
   await page.getByLabel('时间范围').selectOption('all');
   for (const [url, title] of [
-    ['investigations', '调查任务'],
     ['services', '服务管理'],
     ['system-settings', '系统设置'],
   ]) {
@@ -229,6 +237,11 @@ test('console routes, real catalog, filters and desktop shell', async ({
     ).toBeVisible();
     await page.getByRole('link', { name: '返回运行总览' }).click();
   }
+  await page.goto('/investigations');
+  await expect(
+    page.getByRole('heading', { name: '调查任务', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('暂无接入告警', { exact: true })).toBeVisible();
   await page.goto('/approvals');
   await expect(page.getByRole('heading', { name: '审批中心' })).toBeVisible();
   await expect(page.getByText('BLOCK 操作已被安全策略阻止')).toBeVisible();

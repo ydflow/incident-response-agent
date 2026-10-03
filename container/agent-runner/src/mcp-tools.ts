@@ -24,11 +24,21 @@ import {
 } from './mcp-tool-types.js';
 import { createIncidentEvidenceTools } from './incident-evidence-tools.js';
 import {
+  createIncidentProviderTools,
+  type IncidentProviderRoute,
+} from './incident-provider-tools.js';
+import {
   IncidentApprovalGate,
   incidentApprovalGateForScope,
 } from './incident-approval-gate.js';
 import { createIncidentRemediationTools } from './incident-remediation-tools.js';
+import {
+  createIncidentRunbookTool,
+  type IncidentRunbookSearch,
+} from './incident-knowledge.js';
 import { withIncidentToolEvents } from './incident-tool-events.js';
+import type { JsonValue } from './incident-agent-events.js';
+import type { McpToolResult } from './mcp-tool-types.js';
 
 /** Context required by MCP tools. Passed at construction time. */
 export interface McpContext {
@@ -66,6 +76,14 @@ export interface McpContext {
   workspaceGroup: string;
   /** Trusted host injection only; never derived from model tool arguments. */
   incidentApprovalGate?: IncidentApprovalGate;
+  /** Host-only isolated read session; never an Agent argument or source URL. */
+  incidentProviderRoute?: IncidentProviderRoute;
+  /** Host-bound knowledge capability, available only in an isolated Incident session. */
+  incidentRunbookSearch?: IncidentRunbookSearch;
+  /** Trusted Incident result sidecar for fenced host persistence, never model input. */
+  incidentToolResultPayload?: (
+    result: McpToolResult,
+  ) => Record<string, JsonValue>;
 }
 
 function writeIpcFile(dir: string, data: object): string {
@@ -487,6 +505,27 @@ export function buildSendMessageData(
  * Create all Miniclaw MCP tool definitions for in-process SDK MCP server.
  */
 export function createMcpTools(ctx: McpContext): McpToolDefinition<any>[] {
+  if (ctx.incidentProviderRoute) {
+    if (!ctx.incidentApprovalGate)
+      throw new Error('incident_provider_requires_host_gate');
+    const readTools = createIncidentProviderTools(
+      ctx.incidentProviderRoute,
+      ctx.incidentApprovalGate,
+      ctx.incidentToolResultPayload,
+    );
+    return ctx.incidentRunbookSearch
+      ? [
+          ...readTools,
+          createIncidentRunbookTool(
+            ctx.incidentRunbookSearch,
+            ctx.incidentApprovalGate,
+            ctx.incidentToolResultPayload,
+          ),
+        ]
+      : readTools;
+  }
+  if (ctx.incidentRunbookSearch)
+    throw new Error('runbook_requires_isolated_incident_route');
   const MESSAGES_DIR = path.join(ctx.workspaceIpc, 'messages');
   const MESSAGE_RESULTS_DIR = path.join(ctx.workspaceIpc, 'message-results');
   const TASKS_DIR = path.join(ctx.workspaceIpc, 'tasks');

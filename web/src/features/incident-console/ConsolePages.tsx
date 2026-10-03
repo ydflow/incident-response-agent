@@ -299,6 +299,9 @@ export function IncidentsPage() {
         title="故障中心"
         subtitle="集中查看故障、调查状态与服务告警"
       />
+      <Link className="ic-button" to="/investigations">
+        查看接入告警与现场调查
+      </Link>
       <DataNotice />
       <section className="ic-card">
         <div className="ic-panel-heading">
